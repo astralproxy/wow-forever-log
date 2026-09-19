@@ -59,7 +59,7 @@
     }
 
     .container {
-      max-width: 1000px;
+      max-width: 1280px;
       margin: 0 auto;
     }
 
@@ -100,6 +100,64 @@
       border-color: transparent var(--accent) transparent transparent;
       pointer-events: none;
     }
+
+    /* Two-column wiki layout grid */
+  .wiki-layout {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+  
+  /* Sidebar styling */
+  .wiki-sidebar {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+  }
+  
+  .sidebar-title {
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  
+  .sidebar-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .sidebar-menu li {
+    margin-bottom: 4px;
+  }
+  
+  .sidebar-link {
+    display: block;
+    padding: 8px 12px;
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 0.9rem;
+    border-radius: 4px;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  
+  .sidebar-link:hover {
+    background: var(--row-hover);
+    color: var(--text);
+  }
+  
+  .sidebar-link.active {
+    background: rgba(255, 184, 0, 0.12);
+    color: var(--accent);
+    font-weight: 600;
+  }
 
     .filter-bar {
       display: flex;
@@ -231,45 +289,61 @@
     <h1>Forever Log</h1>
   </div>
 
-  <div class="filter-bar">
-    <div class="filter-group">
-      <label for="filterLevel">Level:</label>
-      <select id="filterLevel" onchange="applyFilters()">
-        <option value="ALL">All Levels</option>
-        <option value="1-10">1-10</option>
-        <option value="11-20">11-20</option>
-        <option value="21-30">21-30</option>
-        <option value="31-40">31-40</option>
-        <option value="41-50">41-50</option>
-        <option value="51-60">51-60</option>
-        <option value="60">60 Only</option>
-      </select>
-    </div>
+  <div class="wiki-layout">
+    <!-- LEFT SIDEBAR MENU -->
+    <aside class="wiki-sidebar">
+      <div class="sidebar-title">Navigation</div>
+      <ul class="sidebar-menu">
+        <li><a href="#" class="sidebar-link active" onclick="filterByCategory('ALL', this)">All Content</a></li>
+        <li><a href="#" class="sidebar-link" onclick="filterByCategory('Zones', this)">Zones</a></li>
+        <li><a href="#" class="sidebar-link" onclick="filterByCategory('Dungeons', this)">Dungeons</a></li>
+        <li><a href="#" class="sidebar-link" onclick="filterByCategory('Raids', this)">Raids</a></li>
+      </ul>
+    </aside>
 
-    <div class="filter-group">
-      <label for="filterActivity">Activity:</label>
-      <select id="filterActivity" onchange="applyFilters()">
-        <option value="ALL">All Activities</option>
-      </select>
-    </div>
-  </div>
+    <!-- MAIN CONTENT AREA -->
+    <main class="wiki-content">
+      <div class="filter-bar">
+        <div class="filter-group">
+          <label for="filterLevel">Level:</label>
+          <select id="filterLevel" onchange="applyFilters()">
+            <option value="ALL">All Levels</option>
+            <option value="1-10">1-10</option>
+            <option value="11-20">11-20</option>
+            <option value="21-30">21-30</option>
+            <option value="31-40">31-40</option>
+            <option value="41-50">41-50</option>
+            <option value="51-60">51-60</option>
+            <option value="60">60 Only</option>
+          </select>
+        </div>
 
-  <div class="table-container">
-    <table id="checklistTable">
-      <thead>
-        <tr>
-          <th class="col-cb no-sort"></th>
-          <th class="col-level" onclick="sortTable(1)">Level</th>
-          <th class="col-zone" onclick="sortTable(2)">Zone/Location</th>
-          <th class="col-activity" onclick="sortTable(3)">Activity</th>
-        </tr>
-      </thead>
-      <tbody id="tableBody">
-        <tr>
-          <td colspan="4" class="status-msg">Loading data from Google Sheets...</td>
-        </tr>
-      </tbody>
-    </table>
+        <div class="filter-group">
+          <label for="filterActivity">Activity:</label>
+          <select id="filterActivity" onchange="applyFilters()">
+            <option value="ALL">All Activities</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table id="checklistTable">
+          <thead>
+            <tr>
+              <th class="col-cb no-sort"></th>
+              <th class="col-level" onclick="sortTable(1)">Level</th>
+              <th class="col-zone" onclick="sortTable(2)">Zone/Location</th>
+              <th class="col-activity" onclick="sortTable(3)">Activity</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+            <tr>
+              <td colspan="4" class="status-msg">Loading data from Google Sheets...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
   </div>
 </div>
 
@@ -282,6 +356,7 @@
   let filteredData = [];
   let currentSortColumn = -1;
   let currentSortAsc = true;
+  let currentCategory = "ALL";
 
   async function loadSheetData() {
     try {
@@ -371,31 +446,58 @@
     });
   }
 
-  function applyFilters() {
-    const levelFilter = document.getElementById("filterLevel").value;
-    const activityFilter = document.getElementById("filterActivity").value;
+  // handle sidebar clicks:
+  function filterByCategory(category, element) {
+    event.preventDefault();
+    currentCategory = category;
+  
+    // Update active state class on sidebar links
+    document.querySelectorAll(".sidebar-link").forEach(link => link.classList.remove("active"));
+    if (element) element.classList.add("active");
+  
+    applyFilters();
+  }
 
-    filteredData = rawTableData.filter(item => {
-      let matchesLevel = true;
-      let matchesActivity = true;
+function applyFilters() {
+  const levelFilter = document.getElementById("filterLevel").value;
+  const activityFilter = document.getElementById("filterActivity").value;
 
-      if (levelFilter !== "ALL") {
-        matchesLevel = checkLevelMatch(item.level, levelFilter);
-      }
+  filteredData = rawTableData.filter(item => {
+    let matchesLevel = true;
+    let matchesActivity = true;
+    let matchesCategory = true;
 
-      if (activityFilter !== "ALL") {
-        matchesActivity = item.activity.trim() === activityFilter;
-      }
-
-      return matchesLevel && matchesActivity;
-    });
-
-    if (currentSortColumn !== -1) {
-      sortDataArray(filteredData, currentSortColumn, currentSortAsc);
+    if (levelFilter !== "ALL") {
+      matchesLevel = checkLevelMatch(item.level, levelFilter);
     }
 
-    renderTable();
+    if (activityFilter !== "ALL") {
+      matchesActivity = item.activity.trim() === activityFilter;
+    }
+
+    // Category matching logic against Activity or Zone text
+    if (currentCategory !== "ALL") {
+      const act = item.activity.toLowerCase();
+      const cat = currentCategory.toLowerCase();
+      
+      if (cat === "zones") {
+        matchesCategory = !act.includes("dungeon") && !act.includes("raid");
+      } else if (cat === "dungeons") {
+        matchesCategory = act.includes("dungeon");
+      } else if (cat === "raids") {
+        matchesCategory = act.includes("raid");
+      }
+    }
+
+    return matchesLevel && matchesActivity && matchesCategory;
+  });
+
+  if (currentSortColumn !== -1) {
+    sortDataArray(filteredData, currentSortColumn, currentSortAsc);
   }
+
+  renderTable();
+}
 
   function checkLevelMatch(itemLevelStr, targetRange) {
     const cleanLevel = itemLevelStr.replace('?', '').trim();
