@@ -369,8 +369,19 @@ function applyFilters() {
   }
   
   function openDungeonDetails(zoneName, event) {
-    event.preventDefault();
+    if (event) event.preventDefault();
     const panel = document.getElementById("detailsPanel");
+    let backdrop = document.getElementById("modalBackdrop");
+  
+    // Create backdrop element if it doesn't exist
+    if (!backdrop) {
+      backdrop = document.createElement("div");
+      backdrop.id = "modalBackdrop";
+      backdrop.className = "modal-backdrop";
+      backdrop.onclick = closePanel;
+      document.body.appendChild(backdrop);
+    }
+  
     const key = zoneName.toLowerCase().trim();
     const data = dungeonMap.get(key);
   
@@ -380,8 +391,11 @@ function applyFilters() {
           <h3>${escapeHtml(zoneName)}</h3>
           <button onclick="closePanel()">&times;</button>
         </div>
-        <p style="color: var(--text-dim);">No details found.</p>`;
+        <p style="color: var(--text-dim);">No detailed entry found in the Dungeon tab.</p>`;
     } else {
+      const formattedQuests = escapeHtml(data.quests).replace(/\n/g, '<br>');
+      const formattedBosses = escapeHtml(data.bosses).replace(/\n/g, '<br>');
+  
       panel.innerHTML = `
         <div class="panel-header">
           <h3>${escapeHtml(data.name)}</h3>
@@ -389,16 +403,18 @@ function applyFilters() {
         </div>
         <div class="panel-body">
           <p><strong>Level:</strong> ${escapeHtml(data.level)}</p>
-          <p><strong>Quests:</strong> ${escapeHtml(data.quests)}</p>
-          <p><strong>Bosses:</strong> ${escapeHtml(data.bosses)}</p>
+          <p><strong>Quests:</strong><br>${formattedQuests}</p>
+          <p><strong>Bosses:</strong><br>${formattedBosses}</p>
         </div>`;
     }
     
     panel.classList.add("active");
+    backdrop.classList.add("active");
   }
   
   function closePanel() {
-    document.getElementById("detailsPanel").classList.remove("active");
+    document.getElementById("detailsPanel")?.classList.remove("active");
+    document.getElementById("modalBackdrop")?.classList.remove("active");
   }
 
   function toggleCheck(id, checkbox) {
