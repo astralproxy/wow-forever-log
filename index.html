@@ -30,29 +30,33 @@
 
     <!-- MAIN CONTENT AREA -->
     <main class="wiki-content">
-      <div class="filter-bar">
 
       <!-- FILTERS at top of page -->
-      <div class="filter-group">
-        <label for="filterLevel">Level:</label>
-        <select id="filterLevel" onchange="applyFilters()">
-          <option value="ALL">All Levels</option>
-          <option value="1-10">1-10</option>
-          <option value="11-20">11-20</option>
-          <option value="21-30">21-30</option>
-          <option value="31-40">31-40</option>
-          <option value="41-50">41-50</option>
-          <option value="51-60">51-60</option>
-          <option value="60">60 Only</option>
-        </select>
+      <div class="filter-bar">
+        <div class="filter-group">
+          <label for="filterLevel">Level:</label>
+          <select id="filterLevel" onchange="applyFilters()">
+            <option value="ALL">All Levels</option>
+            <option value="1-10">1-10</option>
+            <option value="11-20">11-20</option>
+            <option value="21-30">21-30</option>
+            <option value="31-40">31-40</option>
+            <option value="41-50">41-50</option>
+            <option value="51-60">51-60</option>
+            <option value="60">60 Only</option>
+          </select>
+  
+          <label for="filterType">Type:</label>
+          <select id="filterType" onchange="applyFilters()">
+            <option value="ALL">All Types</option>
+          </select>
+        </div>
+
+        <div class="filter-group filter-search">
+          <label for="filterSearch">Search:</label>
+          <input type="text" id="filterSearch" placeholder="Search..." oninput="applyFilters()">
+        </div>
       </div>
-      <div class="filter-group">
-        <label for="filterType">Type:</label>
-        <select id="filterType" onchange="applyFilters()">
-          <option value="ALL">All Types</option>
-        </select>
-      </div>
-    </div>
 
     <!-- WRAPPER FOR TABLE + SIDE PANEL -->
     <div class="content-body">
@@ -134,7 +138,7 @@
         id: item.zone.toLowerCase().replace(/[^a-z0-9]/g, "-"),
         level: item.level || "",
         zone: item.zone || "",
-        type: item.type || item.type || "", // Updated property to Type
+        type: item.type || item.activity || "", // Updated property to Type
         cellNotes: item.cellNotes || { level: "", zone: "", type: "" }
       })).filter(item => item.zone.trim() !== "");
 
@@ -205,8 +209,8 @@
   }
 
   // handle sidebar clicks:
-  function filterByCategory(category, element) {
-    event.preventDefault();
+  function filterByCategory(category, element, event) {
+    if (event) event.preventDefault();
     currentCategory = category;
   
     // Update active state class on sidebar links
@@ -219,11 +223,13 @@
 function applyFilters() {
   const levelFilter = document.getElementById("filterLevel")?.value || "ALL";
   const typeFilter = document.getElementById("filterType")?.value || "ALL";
+  const searchVal = document.getElementById("filterSearch")?.value.trim() || "";
 
   filteredData = rawTableData.filter(item => {
     let matchesLevel = true;
     let matchesType = true;
     let matchesCategory = true;
+    let matchesSearch = true;
 
     if (levelFilter !== "ALL") {
       matchesLevel = checkLevelMatch(item.level, levelFilter);
@@ -247,7 +253,11 @@ function applyFilters() {
       }
     }
 
-    return matchesLevel && matchesType && matchesCategory;
+    if (searchVal !== "") {
+      matchesSearch = checkSearchMatch(item, searchVal);
+    }
+
+    return matchesLevel && matchesType && matchesCategory && matchesSearch;
   });
 
   if (currentSortColumn !== -1) {
@@ -277,6 +287,39 @@ function applyFilters() {
       return singleVal >= rangeMin && singleVal <= rangeMax;
     }
 
+    return false;
+  }
+
+  function checkSearchMatch(item, query) {
+    // If numeric, search level column range/value
+    if (/^\d+$/.test(query)) {
+      const numQuery = Number(query);
+      return checkSingleLevelValueMatch(item.level, numQuery);
+    }
+  
+    // Otherwise, search across all columns
+    const lowerQuery = query.toLowerCase();
+    return (
+      item.level.toLowerCase().includes(lowerQuery) ||
+      item.zone.toLowerCase().includes(lowerQuery) ||
+      item.type.toLowerCase().includes(lowerQuery)
+    );
+  }
+
+  function checkSingleLevelValueMatch(itemLevelStr, queryNum) {
+    const cleanLevel = itemLevelStr.replace('?', '').trim();
+    if (!cleanLevel) return false;
+  
+    if (cleanLevel.includes('-')) {
+      const [itemMin, itemMax] = cleanLevel.split('-').map(Number);
+      return queryNum >= itemMin && queryNum <= itemMax;
+    }
+  
+    const singleVal = Number(cleanLevel);
+    if (!isNaN(singleVal)) {
+      return singleVal === queryNum;
+    }
+  
     return false;
   }
 
@@ -337,7 +380,7 @@ function applyFilters() {
           <h3>${escapeHtml(zoneName)}</h3>
           <button onclick="closePanel()">&times;</button>
         </div>
-        <p style="color: var(--text-dim);">No detailed entry found in the Dungeon tab.</p>`;
+        <p style="color: var(--text-dim);">No details found.</p>`;
     } else {
       panel.innerHTML = `
         <div class="panel-header">
