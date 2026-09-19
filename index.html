@@ -92,6 +92,24 @@
   // Add URL for the detailed tabs/sheets using its gviz CSV endpoint or gid parameter
   const DUNGEON_CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=Dungeons`;
   const RAID_CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=Raids`;
+  
+  const LOADING_MESSAGES = [
+    "Polishing corrupted Ashbringers",
+    "Reticulating Barrens chat logs",
+    "Teaching Murlocs proper syntax",
+    "Inoculating battle pets",
+    "Re-anchoring Dalaran",
+    "Calculating Hogger's aggro radius",
+    "Calibrating Gnomish algorithms",
+    "Feeding stray Mana Wyrms",
+    "Running back to corpse",
+    "Polishing Onyxia's head",
+    "Sorting soul shards by color",
+    "Tuning the Deeprun Tram engines",
+    "Herding Westfall chickens",
+    "Assembling additional peons",
+    "Sweeping the steps of Icecrown Citadel"
+  ];
 
   let dungeonMap = new Map(); // Store dungeon lookup data keyed by name
   let raidMap = new Map(); // Store raid lookup data keyed by name
@@ -103,6 +121,16 @@
   let currentCategory = "ALL";
 
   async function loadSheetData() {
+    // Pick and display a random loading message immediately
+    const randomMsg = LOADING_MESSAGES[Math.floor(Math.random() * LOADING_MESSAGES.length)];
+    const tbody = document.getElementById("tableBody");
+    if (tbody) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="3" class="status-msg">${escapeHtml(randomMsg)}...</td>
+        </tr>`;
+    }
+    
     try {
       // 1. Fetch main data and dungeon tab data concurrently
       const [mainRes, dungeonRes] = await Promise.all([
@@ -110,7 +138,7 @@
         fetch(DUNGEON_CSV_URL)
       ]);
   
-      if (!mainRes.ok) throw new Error("Failed to fetch main sheet data");
+      if (!mainRes.ok) throw new Error("Failed to fetch data");
       
       const data = await mainRes.json();
   
