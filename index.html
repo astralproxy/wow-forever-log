@@ -230,11 +230,11 @@
   
       rawTableData = data.map(item => ({
         id: item.zone.toLowerCase().replace(/[^a-z0-9]/g, "-"),
-        level: item.level,
-        zone: item.zone,
-        activity: item.activity,
-        cellNotes: item.cellNotes // Access any cell note via item.cellNotes.zone, item.cellNotes.level, etc.
-      }));
+        level: item.level || "",
+        zone: item.zone || "",
+        activity: item.activity || "",
+        cellNotes: item.cellNotes || { level: "", zone: "", activity: "" }
+      })).filter(item => item.zone.trim() !== "");
   
       populateActivityFilterOptions();
       applyFilters();
@@ -364,14 +364,19 @@
       const tr = document.createElement("tr");
       if (isChecked) tr.classList.add("completed");
 
+      const levelTooltip = item.cellNotes.level ? `title="${escapeHtml(item.cellNotes.level)}"` : "";
+      const zoneTooltip = item.cellNotes.zone ? `title="${escapeHtml(item.cellNotes.zone)}"` : "";
+      const activityTooltip = item.cellNotes.activity ? `title="${escapeHtml(item.cellNotes.activity)}"` : "";
+
       tr.innerHTML = `
         <td class="col-cb">
           <input type="checkbox" ${isChecked ? "checked" : ""} onchange="toggleCheck('${item.id}', this)">
         </td>
-        <td class="col-level">${escapeHtml(item.level)}</td>
-        <td class="col-zone">${escapeHtml(item.zone)}</td>
-        <td class="col-activity">${escapeHtml(item.activity)}</td>
+        <td class="col-level" ${levelTooltip}>${escapeHtml(item.level)}</td>
+        <td class="col-zone" ${zoneTooltip}>${escapeHtml(item.zone)}</td>
+        <td class="col-activity" ${activityTooltip}>${escapeHtml(item.activity)}</td>
       `;
+      
       tbody.appendChild(tr);
     });
   }
