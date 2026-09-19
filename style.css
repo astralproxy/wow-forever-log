@@ -74,6 +74,22 @@
   display: block;
 }
 
+/* Backdrop dim overlay */
+.modal-backdrop {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 999;
+}
+
+.modal-backdrop.active {
+  display: block;
+}
+
 .panel-header {
   display: flex;
   justify-content: space-between;
@@ -180,43 +196,35 @@ td.has-note::after {
   pointer-events: none;
 }
 
-/* Two-column wiki layout grid */
+/* Two-panel full-height layout */
 .wiki-layout {
-display: grid;
-grid-template-columns: 200px 1fr;
-gap: 24px;
-align-items: start;
-}
-
-/* 2-panel full-height layout */
-.wiki-layout {
-display: flex;
-gap: 24px;
-min-height: 100vh;
-width: 96%;
+  display: flex;
+  gap: 24px;
+  min-height: 100vh;
+  width: 96%;
 }
 
 /* Panel 1: Pinned left sidebar */
 .wiki-sidebar {
-width: 220px;
-min-width: 220px;
-height: 100vh;
-position: sticky;
-top: 0;
-background: var(--card-bg);
-border-right: 1px solid var(--border);
-border-radius: 0; /* Remove rounded corners for panel look */
-padding: 20px 16px;
-box-sizing: border-box;
-overflow-y: auto;
+  width: 220px;
+  min-width: 220px;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  background: var(--card-bg);
+  border-right: 1px solid var(--border);
+  border-radius: 0; /* Remove rounded corners for panel look */
+  padding: 20px 16px;
+  box-sizing: border-box;
+  overflow-y: auto;
 }
 
 /* Panel 2: Fill remaining space for content */
 .wiki-content {
-flex: 1;
-padding: 20px 30px;
-min-width: 0; /* Prevents table overflow from breaking flex layout */
-box-sizing: border-box;
+  flex: 1;
+  padding: 20px 30px;
+  min-width: 0; /* Prevents table overflow from breaking flex layout */
+  box-sizing: border-box;
 }
 
 .sidebar-title {
@@ -411,11 +419,6 @@ input[type="checkbox"] {
   .content-body {
     flex-direction: column;
   }
-  .details-panel {
-    width: 100%;
-    min-width: 0;
-    position: static;
-  }
   
   /* Header adjustments */
   .header-container {
@@ -470,6 +473,28 @@ input[type="checkbox"] {
   .wiki-content {
     padding: 0;
     width: 100%;
+  }
+
+  #detailsPanel {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none; /* Hide placeholder when inactive */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  }
+
+  #detailsPanel.active {
+    display: block;
+  }
+
+  .panel-placeholder {
+    display: none; /* Hide static placeholder text on mobile */
   }
   
   .filter-bar {
