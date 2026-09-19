@@ -87,7 +87,7 @@
 .panel-header h3 {
   margin: 0;
   color: var(--accent);
-  font-size: 1.1rem;
+  font-size: 1.3rem;
 }
 
 .panel-header button {
@@ -99,9 +99,9 @@
 }
 
 .panel-body p {
-  margin: 8px 0;
-  font-size: 0.9rem;
-  line-height: 1.4;
+  margin: 10px 0;
+  font-size: 1.1rem;
+  line-height: 1.5;
   white-space: pre-line; /* Preserves newlines from Google Sheets data */
 }
 
@@ -540,6 +540,8 @@ input[type="checkbox"] {
 
   .panel-placeholder {
     display: none; /* Hide static placeholder text on mobile */
+    font-size: 1.0rem;
+    color: var(--text-dim);
   }
   
   .filter-bar {
