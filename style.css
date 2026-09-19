@@ -299,6 +299,27 @@ cursor: pointer;
 border-color: var(--accent);
 }
 
+/* Align search box to right side of filter bar */
+.filter-search {
+  margin-left: auto;
+}
+
+.filter-search input[type="text"] {
+  background: #17171c;
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  outline: none;
+  width: 200px;
+  transition: border-color 0.15s ease;
+}
+
+.filter-search input[type="text"]:focus {
+  border-color: var(--accent);
+}
+
 /* Allow table container to fit the content without stretching */
 .table-container {
 overflow-x: auto;
@@ -404,6 +425,15 @@ input[type="checkbox"] {
   
   .header-note {
     margin-left: 0;
+    width: 100%;
+  }
+
+  .filter-search {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .filter-search input[type="text"] {
     width: 100%;
   }
   
