@@ -58,10 +58,11 @@
       padding: 20px;
     }
 
-    .container {
-      max-width: 1280px;
-      margin: 0 auto;
-    }
+  .container {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
 
     .header-container {
       display: flex;
@@ -108,13 +109,36 @@
     gap: 24px;
     align-items: start;
   }
+
+    /* 2-panel full-height layout */
+  .wiki-layout {
+    display: flex;
+    gap: 24px;
+    min-height: 100vh;
+    width: 96%;
+  }
   
-  /* Sidebar styling */
+  /* Panel 1: Pinned left sidebar */
   .wiki-sidebar {
+    width: 220px;
+    min-width: 220px;
+    height: 100vh;
+    position: sticky;
+    top: 0;
     background: var(--card-bg);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 16px;
+    border-right: 1px solid var(--border);
+    border-radius: 0; /* Remove rounded corners for panel look */
+    padding: 20px 16px;
+    box-sizing: border-box;
+    overflow-y: auto;
+  }
+
+  /* Panel 2: Fill remaining space for content */
+  .wiki-content {
+    flex: 1;
+    padding: 20px 30px;
+    min-width: 0; /* Prevents table overflow from breaking flex layout */
+    box-sizing: border-box;
   }
   
   .sidebar-title {
@@ -204,13 +228,13 @@
     border-radius: 8px;
     border: 1px solid var(--border);
     box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    display: inline-block; /* <-- ADD THIS: lets border/bg fit table width naturally */
+    display: block; /* Ensures it fills width rather than shrink-wrapping */
     max-width: 100%;
   }
   
   /* UPDATE table layout to auto-fit content */
   table {
-    width: auto; /* <-- CHANGE from 100% to auto so columns shrink-wrap content */
+    width: 100%;
     border-collapse: collapse;
     text-align: left;
     table-layout: auto; /* Ensure auto-sizing based on cell contents */
@@ -284,12 +308,12 @@
 <body>
 
 <div class="container">
-  <div class="header-container">
-    <img src="logo.png" alt="Logo" class="header-logo">
-    <h1>Forever Log</h1>
-  </div>
-
   <div class="wiki-layout">
+    <div class="header-container">
+      <img src="logo.png" alt="Logo" class="header-logo">
+      <h1>Forever Log</h1>
+    </div>
+      
     <!-- LEFT SIDEBAR MENU -->
     <aside class="wiki-sidebar">
       <div class="sidebar-title">Navigation</div>
@@ -318,12 +342,12 @@
           </select>
         </div>
 
-        <div class="filter-group">
+        <!--<div class="filter-group">
           <label for="filterActivity">Activity:</label>
           <select id="filterActivity" onchange="applyFilters()">
             <option value="ALL">All Activities</option>
           </select>
-        </div>
+        </div> -->
       </div>
 
       <div class="table-container">
