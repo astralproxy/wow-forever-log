@@ -214,6 +214,7 @@
 <script>
   const SPREADSHEET_ID = "1PWAetMYOglFXz7ISOKisYgRGpZ4Pnfa1D4WL1Hv7D94";
   const CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv`;
+  const API_URL = "https://script.google.com/macros/s/AKfycbzlfcXQC8kkSWoIeDBj2IWslxsfrOTEHL00Sx2pu6795eOk05aI0NUd1pjZVfvWZjG8/exec"; // for notes, etc
 
   let rawTableData = [];
   let filteredData = [];
@@ -222,32 +223,26 @@
 
   async function loadSheetData() {
     try {
-      const response = await fetch(CSV_URL);
+      const response = await fetch(API_URL);
       if (!response.ok) throw new Error("Failed to fetch sheet data");
       
-      const csvText = await response.text();
-      const rows = parseCSV(csvText);
-
-      // Row 3 (index 2) contains spreadsheet headers. Skip to index 3 for data (Row 4).
-      const dataRows = rows.slice(2);
-
-      rawTableData = dataRows.map(row => {
-        const zone = row[2] || "";
-        return {
-          id: zone.toLowerCase().replace(/[^a-z0-9]/g, "-"),
-          level: row[1] || "",
-          zone: zone,
-          activity: row[3] || ""
-        };
-      }).filter(item => item.zone.trim() !== "");
-
+      const data = await response.json();
+  
+      rawTableData = data.map(item => ({
+        id: item.zone.toLowerCase().replace(/[^a-z0-9]/g, "-"),
+        level: item.level,
+        zone: item.zone,
+        activity: item.activity,
+        cellNotes: item.cellNotes // Access any cell note via item.cellNotes.zone, item.cellNotes.level, etc.
+      }));
+  
       populateActivityFilterOptions();
       applyFilters();
     } catch (err) {
       document.getElementById("tableBody").innerHTML = `
         <tr>
           <td colspan="4" class="status-msg" style="color: #ff6b6b;">
-            Error loading spreadsheet data. Make sure the sheet is shared as "Anyone with the link can view".
+            Error loading spreadsheet data from Apps Script.
           </td>
         </tr>`;
     }
