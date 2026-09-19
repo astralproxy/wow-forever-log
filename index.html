@@ -31,28 +31,31 @@
     <!-- MAIN CONTENT AREA -->
     <main class="wiki-content">
       <div class="filter-bar">
-        <div class="filter-group">
-          <label for="filterLevel">Level:</label>
-          <select id="filterLevel" onchange="applyFilters()">
-            <option value="ALL">All Levels</option>
-            <option value="1-10">1-10</option>
-            <option value="11-20">11-20</option>
-            <option value="21-30">21-30</option>
-            <option value="31-40">31-40</option>
-            <option value="41-50">41-50</option>
-            <option value="51-60">51-60</option>
-            <option value="60">60 Only</option>
-          </select>
-        </div>
 
-        <!--<div class="filter-group">
-          <label for="filterActivity">Activity:</label>
-          <select id="filterActivity" onchange="applyFilters()">
-            <option value="ALL">All Activities</option>
-          </select>
-        </div> -->
+      <!-- FILTERS at top of page -->
+      <div class="filter-group">
+        <label for="filterLevel">Level:</label>
+        <select id="filterLevel" onchange="applyFilters()">
+          <option value="ALL">All Levels</option>
+          <option value="1-10">1-10</option>
+          <option value="11-20">11-20</option>
+          <option value="21-30">21-30</option>
+          <option value="31-40">31-40</option>
+          <option value="41-50">41-50</option>
+          <option value="51-60">51-60</option>
+          <option value="60">60 Only</option>
+        </select>
       </div>
+      <div class="filter-group">
+        <label for="filterType">Type:</label>
+        <select id="filterType" onchange="applyFilters()">
+          <option value="ALL">All Types</option>
+        </select>
+      </div> -->
+    </div>
 
+    <!-- WRAPPER FOR TABLE + SIDE PANEL -->
+    <div class="content-body">
       <div class="table-container">
         <table id="checklistTable">
           <thead>
@@ -71,13 +74,12 @@
         </table>
       </div>
 
-      <!-- Side Details Panel -->
-      <aside id="detailsPanel" class="details-panel">
-        <div class="panel-placeholder">Select a dungeon to view details.</div>
-      </aside>
-    </main>
+    <!-- Side Details Panel -->
+    <aside id="detailsPanel" class="details-panel">
+      <div class="panel-placeholder">Select a dungeon to view details.</div>
+    </aside>
   </div>
-</div>
+</main>
 
 <script>
   const SPREADSHEET_ID = "1PWAetMYOglFXz7ISOKisYgRGpZ4Pnfa1D4WL1Hv7D94";
@@ -132,7 +134,7 @@
         id: item.zone.toLowerCase().replace(/[^a-z0-9]/g, "-"),
         level: item.level || "",
         zone: item.zone || "",
-        type: item.type || item.activity || "", // Updated property to Type
+        type: item.type || item.type || "", // Updated property to Type
         cellNotes: item.cellNotes || { level: "", zone: "", type: "" }
       })).filter(item => item.zone.trim() !== "");
   
@@ -186,17 +188,17 @@
     return lines;
   }
 
-  function populateActivityFilterOptions() {
-    const activitySelect = document.getElementById("filterActivity");
-    if (!activitySelect) return; // Prevent crash if element is missing
+  function populateTypeFilterOptions() {
+    const typeSelect = document.getElementById("filterType");
+    if (!typeSelect) return; // Prevent crash if element is missing
   
-    const uniqueActivities = [...new Set(rawTableData.map(item => item.activity.trim()).filter(a => a !== ""))].sort();
-    activitySelect.innerHTML = `<option value="ALL">All Activities</option>`;
+    const uniqueTypes = [...new Set(rawTableData.map(item => item.type.trim()).filter(a => a !== ""))].sort();
+    typeSelect.innerHTML = `<option value="ALL">All Types</option>`;
     uniqueActivities.forEach(act => {
       const opt = document.createElement("option");
       opt.value = act;
       opt.textContent = act;
-      activitySelect.appendChild(opt);
+      typeSelect.appendChild(opt);
     });
   }
 
@@ -214,24 +216,24 @@
 
 function applyFilters() {
   const levelFilter = document.getElementById("filterLevel")?.value || "ALL";
-  const activityFilter = document.getElementById("filterActivity")?.value || "ALL";
+  const typeFilter = document.getElementById("filterType")?.value || "ALL";
 
   filteredData = rawTableData.filter(item => {
     let matchesLevel = true;
-    let matchesActivity = true;
+    let matchesType = true;
     let matchesCategory = true;
 
     if (levelFilter !== "ALL") {
       matchesLevel = checkLevelMatch(item.level, levelFilter);
     }
 
-    if (activityFilter !== "ALL") {
-      matchesActivity = item.activity.trim() === activityFilter;
+    if (typeFilter !== "ALL") {
+      matchesType = item.type.trim() === typeFilter;
     }
 
-    // Category matching logic against Activity or Zone text
+    // Category matching logic against Type or Zone text
     if (currentCategory !== "ALL") {
-      const act = item.activity.toLowerCase();
+      const act = item.type.toLowerCase();
       const cat = currentCategory.toLowerCase();
       
       if (cat === "zones") {
@@ -243,7 +245,7 @@ function applyFilters() {
       }
     }
 
-    return matchesLevel && matchesActivity && matchesCategory;
+    return matchesLevel && matchesType && matchesCategory;
   });
 
   if (currentSortColumn !== -1) {
@@ -408,7 +410,7 @@ function applyFilters() {
     switch(index) {
       case 1: return item.level;
       case 2: return item.zone;
-      case 3: return item.activity;
+      case 3: return item.type;
       default: return "";
     }
   }
