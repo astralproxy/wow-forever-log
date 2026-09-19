@@ -67,12 +67,11 @@
               <th class="col-cb no-sort"></th>
               <th class="col-level" onclick="sortTable(1)">Level</th>
               <th class="col-zone" onclick="sortTable(2)">Zone/Location</th>
-              <th class="col-type" onclick="sortTable(3)">Type</th>
             </tr>
           </thead>
           <tbody id="tableBody">
             <tr>
-              <td colspan="4" class="status-msg">Loading data...</td>
+              <td colspan="3" class="status-msg">Loading Data...</td>
             </tr>
           </tbody>
         </table>
@@ -151,8 +150,8 @@
     } catch (err) {
       document.getElementById("tableBody").innerHTML = `
         <tr>
-          <td colspan="4" class="status-msg" style="color: #ff6b6b;">
-            Error loading spreadsheet data.
+          <td colspan="3" class="status-msg" style="color: #ff6b6b;">
+            Error loading data...
           </td>
         </tr>`;
     }
@@ -331,7 +330,7 @@ function applyFilters() {
     if (filteredData.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="4" class="status-msg">No items match the selected filters.</td>
+          <td colspan="3" class="status-msg">No items match the selected filters.</td>
         </tr>`;
       return;
     }
@@ -344,17 +343,14 @@ function applyFilters() {
       const isDungeon = item.type.toLowerCase().includes("dungeon");
       const dungeonInfo = isDungeon ? dungeonMap.get(item.zone.toLowerCase().trim()) : null;
 
-      // Use Dungeons sheet Location for dungeon tooltips, otherwise fall back to cellNotes
       const dungeonLocation = dungeonInfo?.location || "";
       const zoneNoteText = dungeonLocation || item.cellNotes.zone || "";
 
       const levelTooltip = item.cellNotes.level ? `data-tooltip="${escapeHtml(item.cellNotes.level)}"` : "";
       const zoneTooltip = zoneNoteText ? `data-tooltip="${escapeHtml(zoneNoteText)}"` : "";
-      const typeTooltip = item.cellNotes.type ? `data-tooltip="${escapeHtml(item.cellNotes.type)}"` : "";
 
       const levelClass = item.cellNotes.level ? 'class="col-level has-note"' : 'class="col-level"';
       const zoneClass = zoneNoteText ? 'class="col-zone has-note"' : 'class="col-zone"';
-      const typeClass = item.cellNotes.type ? 'class="col-type has-note"' : 'class="col-type"';
 
       // Hyperlink logic for Dungeon items
       let zoneContent = escapeHtml(item.zone);
@@ -363,13 +359,20 @@ function applyFilters() {
         zoneContent = `<a href="#" class="dungeon-link" onclick="openDungeonDetails('${cleanZoneName}', event)">${escapeHtml(item.zone)}</a>`;
       }
 
+      // Type Pill Tag logic
+      const rawType = item.type.toLowerCase();
+      let tagClass = "zone";
+      if (rawType.includes("dungeon")) tagClass = "dungeon";
+      else if (rawType.includes("raid")) tagClass = "raid";
+
+      const typePill = `<span class="type-tag ${tagClass}">${escapeHtml(item.type)}</span>`;
+
       tr.innerHTML = `
         <td class="col-cb">
           <input type="checkbox" ${isChecked ? "checked" : ""} onchange="toggleCheck('${item.id}', this)">
         </td>
         <td ${levelClass} ${levelTooltip}>${escapeHtml(item.level)}</td>
-        <td ${zoneClass} ${zoneTooltip}>${zoneContent}</td>
-        <td ${typeClass} ${typeTooltip}>${escapeHtml(item.type)}</td>
+        <td ${zoneClass} ${zoneTooltip}>${zoneContent}${typePill}</td>
       `;
       
       tbody.appendChild(tr);
@@ -482,7 +485,6 @@ function applyFilters() {
     switch(index) {
       case 1: return item.level;
       case 2: return item.zone;
-      case 3: return item.type;
       default: return "";
     }
   }
