@@ -308,12 +308,13 @@
 <body>
 
 <div class="container">
-  <div class="wiki-layout">
-    <div class="header-container">
-      <img src="logo.png" alt="Logo" class="header-logo">
-      <h1>Forever Log</h1>
-    </div>
-      
+  
+  <div class="header-container">
+    <img src="logo.png" alt="Logo" class="header-logo">
+    <h1>Forever Log</h1>
+  </div>
+  
+  <div class="wiki-layout">      
     <!-- LEFT SIDEBAR MENU -->
     <aside class="wiki-sidebar">
       <div class="sidebar-title">Navigation</div>
@@ -459,8 +460,9 @@
 
   function populateActivityFilterOptions() {
     const activitySelect = document.getElementById("filterActivity");
+    if (!activitySelect) return; // Prevent crash if element is missing
+  
     const uniqueActivities = [...new Set(rawTableData.map(item => item.activity.trim()).filter(a => a !== ""))].sort();
-    
     activitySelect.innerHTML = `<option value="ALL">All Activities</option>`;
     uniqueActivities.forEach(act => {
       const opt = document.createElement("option");
@@ -483,8 +485,8 @@
   }
 
 function applyFilters() {
-  const levelFilter = document.getElementById("filterLevel").value;
-  const activityFilter = document.getElementById("filterActivity").value;
+  const levelFilter = document.getElementById("filterLevel")?.value || "ALL";
+  const activityFilter = document.getElementById("filterActivity")?.value || "ALL";
 
   filteredData = rawTableData.filter(item => {
     let matchesLevel = true;
