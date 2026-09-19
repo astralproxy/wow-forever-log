@@ -229,7 +229,7 @@
       const rows = parseCSV(csvText);
 
       // Row 3 (index 2) contains spreadsheet headers. Skip to index 3 for data (Row 4).
-      const dataRows = rows.slice(3);
+      const dataRows = rows.slice(2);
 
       rawTableData = dataRows.map(row => {
         const zone = row[2] || "";
