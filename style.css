@@ -74,22 +74,6 @@
   display: block;
 }
 
-/* Backdrop dim overlay */
-.modal-backdrop {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.6);
-  z-index: 999;
-}
-
-.modal-backdrop.active {
-  display: block;
-}
-
 .panel-header {
   display: flex;
   justify-content: space-between;
@@ -418,6 +402,22 @@ input[type="checkbox"] {
   
   .content-body {
     flex-direction: column;
+  }
+
+  /* Backdrop dim overlay */
+  .modal-backdrop {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 999;
+  }
+  
+  .modal-backdrop.active {
+    display: block;
   }
   
   /* Header adjustments */
