@@ -1,0 +1,456 @@
+:root {
+  --bg: #121214;
+  --card-bg: #1e1e24;
+  --border: #33333d;
+  --text: #e1e1e6;
+  --text-dim: #a0a0b0;
+  --accent: #ffb800;
+  --row-hover: #262630;
+  --checked-bg: rgba(255, 184, 0, 0.08);
+}
+
+/* Custom instant tooltip container */
+[data-tooltip] {
+  position: relative;
+}
+
+/* Tooltip text box */
+[data-tooltip]::before {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 6px;
+  padding: 6px 10px;
+  background-color: #1a1a20;
+  color: var(--text);
+  border: 1px solid #ffe58f;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  white-space: pre; /* Only breaks lines on explicit line breaks from the original data */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.05s ease-in-out; /* Instant hover fade */
+  z-index: 100;
+}
+
+/* Display tooltip immediately on hover */
+[data-tooltip]:hover::before {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Layout split for Table & Details Panel */
+.content-body {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.content-body .table-container {
+  flex: 1; /* Takes up remaining space */
+  min-width: 0;
+}
+
+/* Side Details Panel styling */
+.details-panel {
+  width: 320px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  display: none; /* Hidden by default until clicked */
+  position: sticky;
+  top: 20px;
+}
+
+.details-panel.active {
+  display: block;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+}
+
+.panel-header h3 {
+  margin: 0;
+  color: var(--accent);
+  font-size: 1.1rem;
+}
+
+.panel-header button {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 1.4rem;
+  cursor: pointer;
+}
+
+.panel-body p {
+  margin: 8px 0;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+/* Link Styling */
+.dungeon-link {
+  color: var(--accent);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.dungeon-link:hover {
+  color: #fff;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+  margin: 0;
+  padding: 20px;
+}
+
+.container {
+width: 100%;
+margin: 0;
+padding: 0;
+}
+
+.header-container {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.header-logo {
+  height: 64px;
+  width: auto;
+  object-fit: contain;
+}
+
+h1 {
+  color: var(--accent);
+  margin: 0;
+  font-size: 1.8rem;
+}
+
+.header-container h2 {
+  color: var(--accent);
+  margin: 0;
+  font-size: 1.8rem;
+}
+
+/* Pushes text to the far right */
+.header-note {
+  margin-left: auto;
+  color: var(--text-dim);
+  font-size: 0.9rem;
+}
+
+/* Position relative needed for absolute positioning of the indicator */
+td.has-note {
+  position: relative;
+}
+
+/* Small indicator triangle in the top-right corner of the cell */
+td.has-note::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 6px 6px 0;
+  border-color: transparent var(--accent) transparent transparent;
+  pointer-events: none;
+}
+
+/* Two-column wiki layout grid */
+.wiki-layout {
+display: grid;
+grid-template-columns: 200px 1fr;
+gap: 24px;
+align-items: start;
+}
+
+/* 2-panel full-height layout */
+.wiki-layout {
+display: flex;
+gap: 24px;
+min-height: 100vh;
+width: 96%;
+}
+
+/* Panel 1: Pinned left sidebar */
+.wiki-sidebar {
+width: 220px;
+min-width: 220px;
+height: 100vh;
+position: sticky;
+top: 0;
+background: var(--card-bg);
+border-right: 1px solid var(--border);
+border-radius: 0; /* Remove rounded corners for panel look */
+padding: 20px 16px;
+box-sizing: border-box;
+overflow-y: auto;
+}
+
+/* Panel 2: Fill remaining space for content */
+.wiki-content {
+flex: 1;
+padding: 20px 30px;
+min-width: 0; /* Prevents table overflow from breaking flex layout */
+box-sizing: border-box;
+}
+
+.sidebar-title {
+color: var(--accent);
+font-weight: 700;
+font-size: 0.85rem;
+text-transform: uppercase;
+letter-spacing: 0.05em;
+margin-bottom: 12px;
+padding-bottom: 8px;
+border-bottom: 1px solid var(--border);
+}
+
+.sidebar-menu {
+list-style: none;
+padding: 0;
+margin: 0;
+}
+
+.sidebar-menu li {
+margin-bottom: 4px;
+}
+
+.sidebar-link {
+display: block;
+padding: 8px 12px;
+color: var(--text-dim);
+text-decoration: none;
+font-size: 0.9rem;
+border-radius: 4px;
+transition: background 0.15s ease, color 0.15s ease;
+}
+
+.sidebar-link:hover {
+background: var(--row-hover);
+color: var(--text);
+}
+
+.sidebar-link.active {
+background: rgba(255, 184, 0, 0.12);
+color: var(--accent);
+font-weight: 600;
+}
+
+.filter-bar {
+display: flex;
+gap: 16px;
+margin-bottom: 16px;
+flex-wrap: wrap;
+background: var(--card-bg);
+padding: 12px 16px;
+border-radius: 8px;
+border: 1px solid var(--border);
+}
+
+.filter-group {
+display: flex;
+align-items: center;
+gap: 8px;
+}
+
+.filter-group label {
+color: var(--text-dim);
+font-size: 0.9rem;
+font-weight: 600;
+}
+
+.filter-group select {
+background: #17171c;
+color: var(--text);
+border: 1px solid var(--border);
+padding: 6px 12px;
+border-radius: 4px;
+font-size: 0.9rem;
+outline: none;
+cursor: pointer;
+}
+
+.filter-group select:focus {
+border-color: var(--accent);
+}
+
+/* Allow table container to fit the content without stretching */
+.table-container {
+overflow-x: auto;
+background: var(--card-bg);
+border-radius: 8px;
+border: 1px solid var(--border);
+box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+display: block; /* Ensures it fills width rather than shrink-wrapping */
+max-width: 100%;
+}
+
+/* UPDATE table layout to auto-fit content */
+table {
+width: 100%;
+border-collapse: collapse;
+text-align: left;
+table-layout: auto; /* Ensure auto-sizing based on cell contents */
+}
+
+th, td {
+padding-top: 12px;
+padding-bottom: 12px;
+padding-left: 16px;
+padding-right: 36px; /* 16px base padding + 20px extra right buffer */
+border-bottom: 1px solid var(--border);
+white-space: nowrap; /* Prevents text wrapping so columns fit content cleanly */
+}
+
+/* REPLACE fixed column width classes with auto-sizing rules: */
+.col-cb { width: 1px; text-align: center; } /* Shrinks checkbox column to minimum width */
+.col-level, .col-zone, .col-activity { width: auto; }
+
+th {
+  background-color: #17171c;
+  color: var(--text-dim);
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+th:hover {
+  color: var(--text);
+}
+
+th.no-sort {
+  cursor: default;
+}
+
+th.sort-asc::after { content: " ▲"; color: var(--accent); }
+th.sort-desc::after { content: " ▼"; color: var(--accent); }
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+tr:hover {
+  background-color: var(--row-hover);
+}
+
+tr.completed {
+  background-color: var(--checked-bg);
+}
+
+tr.completed td:not(:first-child) {
+  text-decoration: line-through;
+  color: var(--text-dim);
+}
+
+input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--accent);
+}
+
+.status-msg {
+  padding: 20px;
+  color: var(--text-dim);
+  text-align: center;
+}
+
+/* MOBILE (narrow screen) OVERRIDES */
+@media (max-width: 768px) {
+  body {
+    padding: 12px;
+  }
+  
+  .content-body {
+    flex-direction: column;
+  }
+  .details-panel {
+    width: 100%;
+    position: static;
+  }
+  
+  /* Header adjustments */
+  .header-container {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .header-note {
+    margin-left: 0;
+    width: 100%;
+  }
+  
+  /* Main layout stacking */
+  .wiki-layout {
+    flex-direction: column;
+    width: 100%;
+    gap: 16px;
+  }
+  
+  /* Transform sidebar into a horizontal top bar */
+  .wiki-sidebar {
+    width: 100%;
+    min-width: 0;
+    height: auto;
+    position: static;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+  }
+  
+  .sidebar-menu {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .sidebar-menu li {
+    margin-bottom: 0;
+  }
+  
+  /* Content area full width */
+  .wiki-content {
+    padding: 0;
+    width: 100%;
+  }
+  
+  .filter-bar {
+    padding: 8px 12px;
+  }
+  
+  /* Table readability & horizontal scrolling */
+  th, td {
+    padding-left: 10px;
+    padding-right: 16px;
+  }
+  
+  .col-zone, .col-activity {
+    white-space: normal;
+    min-width: 120px;
+  }
+}
