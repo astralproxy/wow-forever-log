@@ -341,8 +341,22 @@ white-space: nowrap; /* Prevents text wrapping so columns fit content cleanly */
 }
 
 /* REPLACE fixed column width classes with auto-sizing rules: */
-.col-cb { width: 1px; text-align: center; } /* Shrinks checkbox column to minimum width */
-.col-level, .col-zone, .col-activity { width: auto; }
+/* Update .col-level to enforce max-width */
+.col-cb { 
+  width: 1px; 
+  text-align: center; 
+} 
+
+.col-level { 
+  max-width: 100px; 
+  width: 100px;
+  overflow: hidden; 
+  text-overflow: ellipsis; 
+}
+
+.col-zone, .col-activity { 
+  width: auto; 
+}
 
 th {
   background-color: #17171c;
