@@ -373,15 +373,6 @@ function applyFilters() {
     const panel = document.getElementById("detailsPanel");
     let backdrop = document.getElementById("modalBackdrop");
   
-    // Create backdrop element if it doesn't exist
-    if (!backdrop) {
-      backdrop = document.createElement("div");
-      backdrop.id = "modalBackdrop";
-      backdrop.className = "modal-backdrop";
-      backdrop.onclick = closePanel;
-      document.body.appendChild(backdrop);
-    }
-  
     const key = zoneName.toLowerCase().trim();
     const data = dungeonMap.get(key);
   
@@ -409,7 +400,18 @@ function applyFilters() {
     }
     
     panel.classList.add("active");
-    backdrop.classList.add("active");
+  
+    // Only trigger the backdrop overlay on screens <= 768px
+    if (window.innerWidth <= 768) {
+      if (!backdrop) {
+        backdrop = document.createElement("div");
+        backdrop.id = "modalBackdrop";
+        backdrop.className = "modal-backdrop";
+        backdrop.onclick = closePanel;
+        document.body.appendChild(backdrop);
+      }
+      backdrop.classList.add("active");
+    }
   }
   
   function closePanel() {
