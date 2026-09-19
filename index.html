@@ -48,6 +48,25 @@
       font-size: 1.8rem;
     }
 
+    /* Position relative needed for absolute positioning of the indicator */
+    td.has-note {
+      position: relative;
+    }
+    
+    /* Small indicator triangle in the top-right corner of the cell */
+    td.has-note::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 0;
+      height: 0;
+      border-style: solid;
+      border-width: 0 6px 6px 0;
+      border-color: transparent var(--accent) transparent transparent;
+      pointer-events: none;
+    }
+
     .filter-bar {
       display: flex;
       gap: 16px;
@@ -368,13 +387,18 @@
       const zoneTooltip = item.cellNotes.zone ? `title="${escapeHtml(item.cellNotes.zone)}"` : "";
       const activityTooltip = item.cellNotes.activity ? `title="${escapeHtml(item.cellNotes.activity)}"` : "";
 
+      // ADD CLASS IF NOTE EXISTS:
+      const levelClass = item.cellNotes.level ? 'class="col-level has-note"' : 'class="col-level"';
+      const zoneClass = item.cellNotes.zone ? 'class="col-zone has-note"' : 'class="col-zone"';
+      const activityClass = item.cellNotes.activity ? 'class="col-activity has-note"' : 'class="col-activity"';
+      
       tr.innerHTML = `
         <td class="col-cb">
           <input type="checkbox" ${isChecked ? "checked" : ""} onchange="toggleCheck('${item.id}', this)">
         </td>
-        <td class="col-level" ${levelTooltip}>${escapeHtml(item.level)}</td>
-        <td class="col-zone" ${zoneTooltip}>${escapeHtml(item.zone)}</td>
-        <td class="col-activity" ${activityTooltip}>${escapeHtml(item.activity)}</td>
+        <td ${levelClass} ${levelTooltip}>${escapeHtml(item.level)}</td>
+        <td ${zoneClass} ${zoneTooltip}>${escapeHtml(item.zone)}</td>
+        <td ${activityClass} ${activityTooltip}>${escapeHtml(item.activity)}</td>
       `;
       
       tbody.appendChild(tr);
