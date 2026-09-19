@@ -64,7 +64,7 @@
   border-radius: 8px;
   padding: 16px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-  display: none; /* Hidden by default until clicked */
+  display: block; /* permanently displayed on wide screens */
   position: sticky;
   top: 20px;
   box-sizing: border-box;
@@ -106,13 +106,13 @@
 
 /* Link Styling */
 .dungeon-link {
-  color: var(--accent);
+  color: #fff176; /* Light yellow */
   text-decoration: underline;
   cursor: pointer;
 }
 
 .dungeon-link:hover {
-  color: #fff;
+  color: #ffffff;
 }
 
 body {
@@ -356,6 +356,36 @@ white-space: nowrap; /* Prevents text wrapping so columns fit content cleanly */
 
 .col-zone, .col-activity { 
   width: auto; 
+}
+
+/* Type Pill Tags */
+.type-tag {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 8px;
+  vertical-align: middle;
+  text-transform: capitalize;
+}
+
+.type-tag.zone {
+  background-color: rgba(76, 175, 80, 0.2);
+  color: #81c784; /* Green */
+  border: 1px solid rgba(76, 175, 80, 0.4);
+}
+
+.type-tag.dungeon {
+  background-color: rgba(33, 150, 243, 0.2);
+  color: #64b5f6; /* Blue */
+  border: 1px solid rgba(33, 150, 243, 0.4);
+}
+
+.type-tag.raid {
+  background-color: rgba(255, 152, 0, 0.2);
+  color: #ffb74d; /* Orange */
+  border: 1px solid rgba(255, 152, 0, 0.4);
 }
 
 th {
