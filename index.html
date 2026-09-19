@@ -137,6 +137,8 @@
         type: item.type || item.type || "", // Updated property to Type
         cellNotes: item.cellNotes || { level: "", zone: "", type: "" }
       })).filter(item => item.zone.trim() !== "");
+
+      populateTypeFilterOptions(); // Populate dropdown options
   
       currentSortColumn = 1;
       currentSortAsc = true;
@@ -194,7 +196,7 @@
   
     const uniqueTypes = [...new Set(rawTableData.map(item => item.type.trim()).filter(a => a !== ""))].sort();
     typeSelect.innerHTML = `<option value="ALL">All Types</option>`;
-    uniqueActivities.forEach(act => {
+    uniqueTypes.forEach(act => {
       const opt = document.createElement("option");
       opt.value = act;
       opt.textContent = act;
