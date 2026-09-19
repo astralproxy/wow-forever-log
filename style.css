@@ -52,13 +52,14 @@
 }
 
 .content-body .table-container {
-  flex: 1; /* Takes up remaining space */
-  min-width: 0;
+  flex: 0 0 65%; /* Takes up set amount of space */
+  min-width: 200;
 }
 
 /* Side Details Panel styling */
 .details-panel {
-  width: 320px;
+  flex: 0 0 calc(35% - 20px);
+  width: auto;
   background: var(--card-bg);
   border: 1px solid var(--border);
   border-radius: 8px;
