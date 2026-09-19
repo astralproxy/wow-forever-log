@@ -139,32 +139,35 @@
       border-color: var(--accent);
     }
 
-    .table-container {
-      overflow-x: auto;
-      background: var(--card-bg);
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    }
+  /* Allow table container to fit the content without stretching */
+  .table-container {
+    overflow-x: auto;
+    background: var(--card-bg);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    display: inline-block; /* <-- ADD THIS: lets border/bg fit table width naturally */
+    max-width: 100%;
+  }
+  
+  /* UPDATE table layout to auto-fit content */
+  table {
+    width: auto; /* <-- CHANGE from 100% to auto so columns shrink-wrap content */
+    border-collapse: collapse;
+    text-align: left;
+    table-layout: auto; /* Ensure auto-sizing based on cell contents */
+  }
 
-/* UPDATE table layout to auto-fit content */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: left;
-  table-layout: auto; /* Ensure auto-sizing based on cell contents */
-}
-
-/* Ensure table cells do not wrap awkwardly when auto-sizing */
-th, td {
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border);
-  white-space: nowrap; /* Prevents text wrapping so columns fit content cleanly */
-}
-
-/* REPLACE fixed column width classes with auto-sizing rules: */
-.col-cb { width: 1px; text-align: center; } /* Shrinks checkbox column to minimum width */
-.col-level, .col-zone, .col-activity { width: auto; }
+  /* Ensure table cells do not wrap awkwardly when auto-sizing */
+  th, td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap; /* Prevents text wrapping so columns fit content cleanly */
+  }
+  
+  /* REPLACE fixed column width classes with auto-sizing rules: */
+  .col-cb { width: 1px; text-align: center; } /* Shrinks checkbox column to minimum width */
+  .col-level, .col-zone, .col-activity { width: auto; }
 
     th {
       background-color: #17171c;
@@ -294,7 +297,18 @@ th, td {
       })).filter(item => item.zone.trim() !== "");
   
       populateActivityFilterOptions();
-      applyFilters();
+
+      // SORT BY LEVEL ASC BY DEFAULT:
+      currentSortColumn = 1; // Column index 1 = Level
+      currentSortAsc = true;  // true = Ascending
+
+      // Update header UI indicator to show ascending arrow on Level column
+      const levelHeader = document.querySelector("#checklistTable th:nth-child(2)");
+      if (levelHeader) {
+        levelHeader.classList.add("sort-asc");
+      }
+
+      applyFilters(); // Applies filter and executes sortDataArray()
     } catch (err) {
       document.getElementById("tableBody").innerHTML = `
         <tr>
