@@ -415,8 +415,15 @@
 
   function sortDataArray(dataArray, columnIndex, asc) {
     dataArray.sort((a, b) => {
-      let valA = getColumnValue(a, columnIndex);
-      let valB = getColumnValue(b, columnIndex);
+      let valA = getColumnValue(a, columnIndex).trim();
+      let valB = getColumnValue(b, columnIndex).trim();
+
+      // If sorting by Level (columnIndex 1), force '?' to the bottom
+      if (columnIndex === 1) {
+        if (valA === '?' && valB !== '?') return 1;
+        if (valA !== '?' && valB === '?') return -1;
+        if (valA === '?' && valB === '?') return 0;
+      }
 
       return asc 
         ? valA.localeCompare(valB, undefined, { numeric: true, sensitivity: 'base' })
