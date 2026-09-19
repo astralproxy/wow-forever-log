@@ -67,6 +67,7 @@
   display: none; /* Hidden by default until clicked */
   position: sticky;
   top: 20px;
+  box-sizing: border-box;
 }
 
 .details-panel.active {
@@ -390,6 +391,7 @@ input[type="checkbox"] {
   }
   .details-panel {
     width: 100%;
+    min-width: 0;
     position: static;
   }
   
