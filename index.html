@@ -125,10 +125,11 @@
           if (row.length > 1) {
             const dungeonName = row[1].trim().toLowerCase(); // Col B
             dungeonMap.set(dungeonName, {
-              level: row[0] || "",   // Col A
-              name: row[1] || "",    // Col B
-              quests: row[2] || "",  // Col C
-              bosses: row[3] || ""   // Col D
+              level: row[0] || "",      // Col A
+              name: row[1] || "",       // Col B
+              location: row[2] || "",   // Col C
+              quests: row[3] || "",     // Col D
+              bosses: row[4] || ""      // Col E
             });
           }
         });
@@ -339,22 +340,29 @@ function applyFilters() {
       const isChecked = localStorage.getItem(`wow_chk_${item.id}`) === "true";
       const tr = document.createElement("tr");
       if (isChecked) tr.classList.add("completed");
-  
+
+      const isDungeon = item.type.toLowerCase().includes("dungeon");
+      const dungeonInfo = isDungeon ? dungeonMap.get(item.zone.toLowerCase().trim()) : null;
+
+      // Use Dungeons sheet Location for dungeon tooltips, otherwise fall back to cellNotes
+      const dungeonLocation = dungeonInfo?.location || "";
+      const zoneNoteText = dungeonLocation || item.cellNotes.zone || "";
+
       const levelTooltip = item.cellNotes.level ? `data-tooltip="${escapeHtml(item.cellNotes.level)}"` : "";
-      const zoneTooltip = item.cellNotes.zone ? `data-tooltip="${escapeHtml(item.cellNotes.zone)}"` : "";
+      const zoneTooltip = zoneNoteText ? `data-tooltip="${escapeHtml(zoneNoteText)}"` : "";
       const typeTooltip = item.cellNotes.type ? `data-tooltip="${escapeHtml(item.cellNotes.type)}"` : "";
-  
+
       const levelClass = item.cellNotes.level ? 'class="col-level has-note"' : 'class="col-level"';
-      const zoneClass = item.cellNotes.zone ? 'class="col-zone has-note"' : 'class="col-zone"';
+      const zoneClass = zoneNoteText ? 'class="col-zone has-note"' : 'class="col-zone"';
       const typeClass = item.cellNotes.type ? 'class="col-type has-note"' : 'class="col-type"';
-  
+
       // Hyperlink logic for Dungeon items
       let zoneContent = escapeHtml(item.zone);
-      if (item.type.toLowerCase().includes("dungeon")) {
+      if (isDungeon) {
         const cleanZoneName = escapeHtml(item.zone).replace(/'/g, "\\'");
         zoneContent = `<a href="#" class="dungeon-link" onclick="openDungeonDetails('${cleanZoneName}', event)">${escapeHtml(item.zone)}</a>`;
       }
-  
+
       tr.innerHTML = `
         <td class="col-cb">
           <input type="checkbox" ${isChecked ? "checked" : ""} onchange="toggleCheck('${item.id}', this)">
@@ -394,6 +402,7 @@ function applyFilters() {
         </div>
         <div class="panel-body">
           <p><strong>Level:</strong> ${escapeHtml(data.level)}</p>
+          <p><strong>Location:</strong> ${escapeHtml(data.location)}</p>
           <p><strong>Quests:</strong><br>${formattedQuests}</p>
           <p><strong>Bosses:</strong><br>${formattedBosses}</p>
         </div>`;
