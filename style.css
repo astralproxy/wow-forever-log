@@ -596,9 +596,29 @@ input[type="checkbox"] {
     padding-left: 10px;
     padding-right: 16px;
   }
+
+  /* Ensure the table distributes column percentages correctly */
+  #checklistTable {
+    width: 100%;
+    table-layout: fixed;
+  }
   
   .col-zone, .col-activity {
     white-space: normal;
     min-width: 120px;
+    width: 50%;
+  }
+
+  /* Optional: Set explicit widths for remaining columns so they distribute nicely 
+  .col-cb {
+    width: 40px;
+  }
+  
+  .col-level {
+    width: 20%;
+  }
+  
+  .col-progress {
+    width: 30%;*/
   }
 }
