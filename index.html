@@ -34,6 +34,9 @@
       <!-- FILTERS at top of page -->
       <div class="filter-bar">
         <div class="filter-group">
+          <label for="toggleProgress">
+            <input type="checkbox" id="toggleProgress" checked onchange="toggleProgressColumn()"> Show Progress
+          </label>
           <label for="filterLevel">Level:</label>
           <select id="filterLevel" onchange="applyFilters()">
             <option value="ALL">All Levels</option>
@@ -65,13 +68,14 @@
           <thead>
             <tr>
               <th class="col-cb no-sort"></th>
+              <th class="col-progress">Progress</th>
               <th class="col-level" onclick="sortTable(1)">Level</th>
               <th class="col-zone" onclick="sortTable(2)">Zone/Location</th>
             </tr>
           </thead>
           <tbody id="tableBody">
             <tr>
-              <td colspan="3" class="status-msg">Loading Data...</td>
+              <td colspan="4" class="status-msg">Loading Data...</td>
             </tr>
           </tbody>
         </table>
@@ -128,7 +132,7 @@
     if (tbody) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="3" class="status-msg">${escapeHtml(randomMsg)}...</td>
+          <td colspan="4" class="status-msg">${escapeHtml(randomMsg)}...</td>
         </tr>`;
     }
     
@@ -219,7 +223,7 @@
       console.error(err);
       document.getElementById("tableBody").innerHTML = `
         <tr>
-          <td colspan="3" class="status-msg" style="color: #ff6b6b;">
+          <td colspan="4" class="status-msg" style="color: #ff6b6b;">
             Error loading data...
           </td>
         </tr>`;
@@ -399,7 +403,7 @@ function applyFilters() {
     if (filteredData.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="3" class="status-msg">No items match the selected filters.</td>
+          <td colspan="4" class="status-msg">No items match the selected filters.</td>
         </tr>`;
       return;
     }
@@ -423,11 +427,14 @@ function applyFilters() {
 
       const notes = item.cellNotes || {};
       const key = item.zone.toLowerCase().trim();
+      const entityId = key.replace(/[^a-z0-9]/g, "-");
+
       const dungeonInfo = itemCategory === "dungeon" ? dungeonMap.get(key) : null;
       const raidInfo = itemCategory === "raid" ? raidMap.get(key) : null;
       const zoneInfo = itemCategory === "zone" ? zoneMap.get(key) : null;
+      const detailData = dungeonInfo || raidInfo || zoneInfo;
 
-      const detailLocation = dungeonInfo?.location || raidInfo?.location || zoneInfo?.location || "";
+      const detailLocation = detailData?.location || "";
       const zoneNoteText = detailLocation || notes.zone || "";
 
       const levelTooltip = notes.level ? `data-tooltip="${escapeHtml(notes.level)}"` : "";
@@ -438,8 +445,10 @@ function applyFilters() {
 
       const encodedZoneName = encodeURIComponent(item.zone).replace(/'/g, "%27");
       const zoneContent = `<a href="#" class="dungeon-link" onclick="openDetails('${encodedZoneName}', '${itemCategory}', event)">${escapeHtml(item.zone)}</a>`;
-
       const typePill = `<span class="type-tag ${tagClass}">${escapeHtml(item.type)}</span>`;
+
+      // Calculate Quests/Bosses Progress
+      const progressHtml = getItemProgress(detailData, entityId);
 
       tr.innerHTML = `
         <td class="col-cb">
@@ -447,10 +456,14 @@ function applyFilters() {
         </td>
         <td ${levelClass} ${levelTooltip}>${escapeHtml(item.level)}</td>
         <td ${zoneClass} ${zoneTooltip}>${zoneContent}<br>${typePill}</td>
+        <td class="col-progress">${progressHtml}</td>
       `;
       
       tbody.appendChild(tr);
     });
+
+    // Apply visibility state of the progress column based on the checkbox toggle
+    toggleProgressColumn();
   }
   
   function openDetails(encodedZoneName, category, event) {
@@ -547,6 +560,9 @@ function applyFilters() {
     } else {
       parent.classList.remove("completed");
     }
+
+    // Refresh table so row progress counts update immediately
+    renderTable();
   }
   
   function closePanel() {
@@ -610,6 +626,45 @@ function applyFilters() {
       case 2: return item.zone;
       default: return "";
     }
+  }
+
+  function getItemProgress(data, entityId) {
+    const questStats = countCategoryProgress(data?.quests, entityId, "quest");
+    const bossStats = countCategoryProgress(data?.bosses, entityId, "boss");
+
+    let html = "";
+    if (questStats.total > 0) {
+      html += `Quests (${questStats.checked}/${questStats.total})<br>`;
+    }
+    if (bossStats.total > 0) {
+      html += `Bosses (${bossStats.checked}/${bossStats.total})`;
+    }
+
+    return html || '<span style="color: var(--text-dim);">-</span>';
+  }
+
+  function countCategoryProgress(rawText, entityId, prefix) {
+    if (!rawText || !rawText.trim()) return { checked: 0, total: 0 };
+    
+    const lines = rawText.split('\n').map(l => l.trim()).filter(l => l !== "");
+    let checkedCount = 0;
+
+    lines.forEach(line => {
+      const itemSlug = line.toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/-+/g, "-");
+      const key = `wow_detail_${entityId}_${prefix}_${itemSlug}`;
+      if (localStorage.getItem(key) === "true") {
+        checkedCount++;
+      }
+    });
+
+    return { checked: checkedCount, total: lines.length };
+  }
+
+  function toggleProgressColumn() {
+    const show = document.getElementById("toggleProgress").checked;
+    document.querySelectorAll(".col-progress").forEach(el => {
+      el.style.display = show ? "" : "none";
+    });
   }
 
   function escapeHtml(str) {
