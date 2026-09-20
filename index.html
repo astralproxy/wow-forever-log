@@ -453,7 +453,7 @@ function applyFilters() {
     });
   }
   
-  function openDetails(zoneName, category, event) {
+  function openDetails(encodedZoneName, category, event) {
     if (event) event.preventDefault();
     const zoneName = decodeURIComponent(encodedZoneName);
     const panel = document.getElementById("detailsPanel");
