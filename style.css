@@ -75,6 +75,31 @@
   display: block;
 }
 
+.detail-checklist {
+  margin-bottom: 12px;
+}
+
+.detail-item {
+  margin: 4px 0;
+}
+
+.detail-item label {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.detail-item input[type="checkbox"] {
+  margin-top: 3px;
+  cursor: pointer;
+}
+
+.detail-item.completed span {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
 .panel-header {
   display: flex;
   justify-content: space-between;
