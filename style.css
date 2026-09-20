@@ -91,7 +91,7 @@
 /* Float thumbnail inside panel body */
 .panel-thumb {
   float: right;
-  width: 100px;
+  width: 35%;
   aspect-ratio: 3 / 2;
   object-fit: cover;
   border-radius: 4px;
