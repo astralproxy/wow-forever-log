@@ -446,7 +446,7 @@ function applyFilters() {
           <input type="checkbox" ${isChecked ? "checked" : ""} onchange="toggleCheck('${item.id}', this)">
         </td>
         <td ${levelClass} ${levelTooltip}>${escapeHtml(item.level)}</td>
-        <td ${zoneClass} ${zoneTooltip}>${zoneContent}${typePill}</td>
+        <td ${zoneClass} ${zoneTooltip}>${zoneContent}<br>${typePill}</td>
       `;
       
       tbody.appendChild(tr);
@@ -480,8 +480,9 @@ function applyFilters() {
           <p style="color: var(--text-dim);">No detailed entry found in the ${escapeHtml(category)} tab.</p>
         </div>`;
     } else {
-      const formattedQuests = escapeHtml(data.quests || "").replace(/\n/g, '<br>');
-      const formattedBosses = escapeHtml(data.bosses || "").replace(/\n/g, '<br>');
+      const entityId = key.replace(/[^a-z0-9]/g, "-");
+      const formattedQuests = renderListWithCheckboxes(data.quests, entityId, "quest");
+      const formattedBosses = renderListWithCheckboxes(data.bosses, entityId, "boss");
 
       const imageHtml = data.image 
         ? `<img src="images/${escapeHtml(data.image)}.webp" alt="${escapeHtml(data.name)}" class="panel-thumb">`
@@ -496,8 +497,10 @@ function applyFilters() {
           ${imageHtml}
           <p><strong>Level:</strong> ${escapeHtml(data.level)}</p>
           <p><strong>Location:</strong> ${escapeHtml(data.location)}</p>
-          <p><strong>Quests:</strong><br>${formattedQuests}</p>
-          <p><strong>Bosses:</strong><br>${formattedBosses}</p>
+          <p><strong>Quests:</strong></p>
+          <div class="detail-checklist">${formattedQuests}</div>
+          <p><strong>Bosses:</strong></p>
+          <div class="detail-checklist">${formattedBosses}</div>
         </div>`;
     }
     
@@ -512,6 +515,34 @@ function applyFilters() {
         document.body.appendChild(backdrop);
       }
       backdrop.classList.add("active");
+    }
+  }
+
+  function renderListWithCheckboxes(rawText, entityId, prefix) {
+    if (!rawText || !rawText.trim()) return '<span style="color: var(--text-dim);">None</span>';
+    
+    const lines = rawText.split('\n').map(l => l.trim()).filter(l => l !== "");
+    return lines.map((line, idx) => {
+      const key = `wow_detail_${entityId}_${prefix}_${idx}`;
+      const isChecked = localStorage.getItem(key) === "true";
+      const completedClass = isChecked ? "completed" : "";
+      return `
+        <div class="detail-item ${completedClass}">
+          <label>
+            <input type="checkbox" ${isChecked ? "checked" : ""} onchange="toggleDetailCheck('${key}', this)">
+            <span>${escapeHtml(line)}</span>
+          </label>
+        </div>`;
+    }).join("");
+  }
+
+  function toggleDetailCheck(key, checkbox) {
+    localStorage.setItem(key, checkbox.checked);
+    const parent = checkbox.closest(".detail-item");
+    if (checkbox.checked) {
+      parent.classList.add("completed");
+    } else {
+      parent.classList.remove("completed");
     }
   }
   
