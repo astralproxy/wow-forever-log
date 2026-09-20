@@ -35,7 +35,7 @@
       <div class="filter-bar">
         <div class="filter-group">
           <label for="toggleProgress">
-            <input type="checkbox" id="toggleProgress" checked onchange="toggleProgressColumn()"> Show Progress
+            <input type="checkbox" id="toggleProgress" checked onchange="toggleProgressColumn()"> Show Progress | 
           </label>
           <label for="filterLevel">Level:</label>
           <select id="filterLevel" onchange="applyFilters()">
@@ -68,9 +68,9 @@
           <thead>
             <tr>
               <th class="col-cb no-sort"></th>
-              <th class="col-progress">Progress</th>
               <th class="col-level" onclick="sortTable(1)">Level</th>
               <th class="col-zone" onclick="sortTable(2)">Zone/Location</th>
+              <th class="col-progress">Progress</th>
             </tr>
           </thead>
           <tbody id="tableBody">
