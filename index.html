@@ -418,36 +418,34 @@ function applyFilters() {
     const data = dungeonMap.get(key);
   
     if (!data) {
-    panel.innerHTML = `
-      <div class="panel-header">
-        <h3>${escapeHtml(zoneName)}</h3>
-        <button onclick="closePanel()">&times;</button>
-      </div>
-      <p style="color: var(--text-dim);">No detailed entry found in the Dungeon tab.</p>`;
-  } else {
-    const formattedQuests = escapeHtml(data.quests).replace(/\n/g, '<br>');
-    const formattedBosses = escapeHtml(data.bosses).replace(/\n/g, '<br>');
-
-    // Check for image name and construct path
-    const imageHtml = data.image 
-      ? `<img src="images/${escapeHtml(data.image)}.webp" alt="${escapeHtml(data.name)}" class="panel-thumb">`
-      : '';
-
-    panel.innerHTML = `
-      <div class="panel-header">
-        <div class="panel-title-group">
-          <h3>${escapeHtml(data.name)}</h3>
+      panel.innerHTML = `
+        <div class="panel-header">
+          <h3>${escapeHtml(zoneName)}</h3>
+          <button onclick="closePanel()">&times;</button>
         </div>
-        ${imageHtml}
-        <button onclick="closePanel()">&times;</button>
-      </div>
-      <div class="panel-body">
-        <p><strong>Level:</strong> ${escapeHtml(data.level)}</p>
-        <p><strong>Location:</strong> ${escapeHtml(data.location)}</p>
-        <p><strong>Quests:</strong><br>${formattedQuests}</p>
-        <p><strong>Bosses:</strong><br>${formattedBosses}</p>
-      </div>`;
-  }
+        <p style="color: var(--text-dim);">No detailed entry found in the Dungeon tab.</p>`;
+    } else {
+      const formattedQuests = escapeHtml(data.quests).replace(/\n/g, '<br>');
+      const formattedBosses = escapeHtml(data.bosses).replace(/\n/g, '<br>');
+  
+      // Construct image tag
+      const imageHtml = data.image 
+        ? `<img src="images/${escapeHtml(data.image)}.webp" alt="${escapeHtml(data.name)}" class="panel-thumb">`
+        : '';
+  
+      panel.innerHTML = `
+        <div class="panel-header">
+          <h3>${escapeHtml(data.name)}</h3>
+          <button onclick="closePanel()">&times;</button>
+        </div>
+        <div class="panel-body">
+          ${imageHtml}
+          <p><strong>Level:</strong> ${escapeHtml(data.level)}</p>
+          <p><strong>Location:</strong> ${escapeHtml(data.location)}</p>
+          <p><strong>Quests:</strong><br>${formattedQuests}</p>
+          <p><strong>Bosses:</strong><br>${formattedBosses}</p>
+        </div>`;
+    }
     
     panel.classList.add("active");
   
