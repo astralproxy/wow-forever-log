@@ -634,10 +634,12 @@ function applyFilters() {
 
     let html = "";
     if (questStats.total > 0) {
-      html += `Quests (${questStats.checked}/${questStats.total})<br>`;
+      const qDone = questStats.checked === questStats.total;
+      html += `Quests (${questStats.checked}/${questStats.total})${qDone ? ' ✅' : ''}<br>`;
     }
     if (bossStats.total > 0) {
-      html += `Bosses (${bossStats.checked}/${bossStats.total})`;
+      const bDone = bossStats.checked === bossStats.total;
+      html += `Bosses (${bossStats.checked}/${bossStats.total})${bDone ? ' ✅' : ''}`;
     }
 
     return html || '<span style="color: var(--text-dim);">-</span>';
