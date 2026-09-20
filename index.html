@@ -95,7 +95,7 @@
   
   const LOADING_MESSAGES = [
     "Polishing corrupted Ashbringers",
-    "Reticulating Barrens chat logs",
+    "Reading Barrens chat logs",
     "Teaching Murlocs proper syntax",
     "Inoculating battle pets",
     "Re-anchoring Dalaran",
@@ -164,10 +164,10 @@
       }
   
       rawTableData = data.map(item => ({
-        id: item.zone.toLowerCase().replace(/[^a-z0-9]/g, "-"),
+        id: (item.zone || "").toLowerCase().replace(/[^a-z0-9]/g, "-"),
         level: item.level || "",
         zone: item.zone || "",
-        type: item.type || item.activity || "", // Updated property to Type
+        type: item.type || item.activity || "",
         cellNotes: item.cellNotes || { level: "", zone: "", type: "" }
       })).filter(item => item.zone.trim() !== "");
 
@@ -375,10 +375,11 @@ function applyFilters() {
       const dungeonLocation = dungeonInfo?.location || "";
       const zoneNoteText = dungeonLocation || item.cellNotes.zone || "";
 
-      const levelTooltip = item.cellNotes.level ? `data-tooltip="${escapeHtml(item.cellNotes.level)}"` : "";
+      const notes = item.cellNotes || {};
+      const levelTooltip = notes.level ? `data-tooltip="${escapeHtml(notes.level)}"` : "";
       const zoneTooltip = zoneNoteText ? `data-tooltip="${escapeHtml(zoneNoteText)}"` : "";
 
-      const levelClass = item.cellNotes.level ? 'class="col-level has-note"' : 'class="col-level"';
+      const levelClass = notes.level ? 'class="col-level has-note"' : 'class="col-level"';
       const zoneClass = zoneNoteText ? 'class="col-zone has-note"' : 'class="col-zone"';
 
       // Hyperlink logic for Dungeon items
