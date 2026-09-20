@@ -85,14 +85,6 @@
 </main>
 
 <script>
-  const SPREADSHEET_ID = "1PWAetMYOglFXz7ISOKisYgRGpZ4Pnfa1D4WL1Hv7D94";
-  const CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv`;
-  const API_URL = "https://script.google.com/macros/s/AKfycbzlfcXQC8kkSWoIeDBj2IWslxsfrOTEHL00Sx2pu6795eOk05aI0NUd1pjZVfvWZjG8/exec"; // for notes, etc
-  
-  // Add URL for the detailed tabs/sheets using its gviz CSV endpoint or gid parameter
-  const DUNGEON_CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=Dungeons`;
-  const RAID_CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=Raids`;
-  
   const LOADING_MESSAGES = [
     "Polishing corrupted Ashbringers",
     "Reading Barrens chat logs",
@@ -110,9 +102,19 @@
     "Assembling additional peons",
     "Sweeping the steps of Icecrown Citadel"
   ];
+  
+  const SPREADSHEET_ID = "1PWAetMYOglFXz7ISOKisYgRGpZ4Pnfa1D4WL1Hv7D94";
+  const CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv`;
+  const API_URL = "https://script.google.com/macros/s/AKfycbzlfcXQC8kkSWoIeDBj2IWslxsfrOTEHL00Sx2pu6795eOk05aI0NUd1pjZVfvWZjG8/exec"; // for notes, etc
+  
+  // Add URL for the detailed tabs/sheets using its gviz CSV endpoint or gid parameter
+  const DUNGEON_CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=Dungeons`;
+  const RAID_CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=Raids`;
+  const ZONE_CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=Zones`;
 
   let dungeonMap = new Map(); // Store dungeon lookup data keyed by name
   let raidMap = new Map(); // Store raid lookup data keyed by name
+  let zoneMap = new Map(); // Store zone lookup data keyed by name
 
   let rawTableData = [];
   let filteredData = [];
@@ -131,11 +133,12 @@
     }
     
     try {
-      // 1. Fetch main data, Dungeon, and Raid CSV tabs concurrently
-      const [mainRes, dungeonRes, raidRes] = await Promise.all([
+      // 1. Fetch main data, Dungeon, Raid, and Zone CSV tabs concurrently
+      const [mainRes, dungeonRes, raidRes, zoneRes] = await Promise.all([
         fetch(API_URL),
         fetch(DUNGEON_CSV_URL),
-        fetch(RAID_CSV_URL)
+        fetch(RAID_CSV_URL),
+        fetch(ZONE_CSV_URL)
       ]);
   
       if (!mainRes.ok) throw new Error("Failed to fetch data");
@@ -146,11 +149,10 @@
       if (dungeonRes.ok) {
         const csvText = await dungeonRes.text();
         const parsedRows = parseCSV(csvText);
-        
         parsedRows.slice(1).forEach(row => {
           if (row.length > 1) {
-            const dungeonName = row[1].trim().toLowerCase();
-            dungeonMap.set(dungeonName, {
+            const name = row[1].trim().toLowerCase();
+            dungeonMap.set(name, {
               level: row[0] || "",
               name: row[1] || "",
               location: row[2] || "",
@@ -166,11 +168,29 @@
       if (raidRes.ok) {
         const csvText = await raidRes.text();
         const parsedRows = parseCSV(csvText);
-        
         parsedRows.slice(1).forEach(row => {
           if (row.length > 1) {
-            const raidName = row[1].trim().toLowerCase();
-            raidMap.set(raidName, {
+            const name = row[1].trim().toLowerCase();
+            raidMap.set(name, {
+              level: row[0] || "",
+              name: row[1] || "",
+              location: row[2] || "",
+              quests: row[3] || "",
+              bosses: row[4] || "",
+              image: row[6] ? row[6].trim() : ""
+            });
+          }
+        });
+      }
+
+      // Parse Zone CSV tab
+      if (zoneRes.ok) {
+        const csvText = await zoneRes.text();
+        const parsedRows = parseCSV(csvText);
+        parsedRows.slice(1).forEach(row => {
+          if (row.length > 1) {
+            const name = row[1].trim().toLowerCase();
+            zoneMap.set(name, {
               level: row[0] || "",
               name: row[1] || "",
               location: row[2] || "",
@@ -402,10 +422,12 @@ function applyFilters() {
       }
 
       const notes = item.cellNotes || {};
-      const dungeonInfo = itemCategory === "dungeon" ? dungeonMap.get(item.zone.toLowerCase().trim()) : null;
-      const raidInfo = itemCategory === "raid" ? raidMap.get(item.zone.toLowerCase().trim()) : null;
+      const key = item.zone.toLowerCase().trim();
+      const dungeonInfo = itemCategory === "dungeon" ? dungeonMap.get(key) : null;
+      const raidInfo = itemCategory === "raid" ? raidMap.get(key) : null;
+      const zoneInfo = itemCategory === "zone" ? zoneMap.get(key) : null;
 
-      const detailLocation = dungeonInfo?.location || raidInfo?.location || "";
+      const detailLocation = dungeonInfo?.location || raidInfo?.location || zoneInfo?.location || "";
       const zoneNoteText = detailLocation || notes.zone || "";
 
       const levelTooltip = notes.level ? `data-tooltip="${escapeHtml(notes.level)}"` : "";
@@ -414,7 +436,6 @@ function applyFilters() {
       const levelClass = notes.level ? 'class="col-level has-note"' : 'class="col-level"';
       const zoneClass = zoneNoteText ? 'class="col-zone has-note"' : 'class="col-zone"';
 
-      // Hyperlink logic for ALL items (Dungeons, Raids, and Zones)
       const cleanZoneName = escapeHtml(item.zone).replace(/'/g, "\\'");
       const zoneContent = `<a href="#" class="dungeon-link" onclick="openDetails('${cleanZoneName}', '${itemCategory}', event)">${escapeHtml(item.zone)}</a>`;
 
@@ -444,9 +465,11 @@ function applyFilters() {
       data = dungeonMap.get(key);
     } else if (category === "raid") {
       data = raidMap.get(key);
+    } else if (category === "zone") {
+      data = zoneMap.get(key);
     }
 
-    if (!data && (category === "dungeon" || category === "raid")) {
+    if (!data) {
       panel.innerHTML = `
         <div class="panel-header">
           <h3>${escapeHtml(zoneName)}</h3>
@@ -454,21 +477,6 @@ function applyFilters() {
         </div>
         <div class="panel-body">
           <p style="color: var(--text-dim);">No detailed entry found in the ${escapeHtml(category)} tab.</p>
-        </div>`;
-    } else if (category === "zone") {
-      // Fallback details view for standard Zones from main table
-      const mainItem = rawTableData.find(i => i.zone.toLowerCase().trim() === key);
-      const notes = mainItem?.cellNotes || {};
-
-      panel.innerHTML = `
-        <div class="panel-header">
-          <h3>${escapeHtml(zoneName)}</h3>
-          <button onclick="closePanel()">&times;</button>
-        </div>
-        <div class="panel-body">
-          <p><strong>Level Range:</strong> ${escapeHtml(mainItem?.level || "N/A")}</p>
-          <p><strong>Type:</strong> Zone</p>
-          ${notes.zone ? `<p><strong>Notes:</strong><br>${escapeHtml(notes.zone)}</p>` : ''}
         </div>`;
     } else {
       const formattedQuests = escapeHtml(data.quests).replace(/\n/g, '<br>');
