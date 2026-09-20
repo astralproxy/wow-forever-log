@@ -522,8 +522,11 @@ function applyFilters() {
     if (!rawText || !rawText.trim()) return '<span style="color: var(--text-dim);">None</span>';
     
     const lines = rawText.split('\n').map(l => l.trim()).filter(l => l !== "");
-    return lines.map((line, idx) => {
-      const key = `wow_detail_${entityId}_${prefix}_${idx}`;
+    return lines.map(line => {
+      // Create a persistent slug from the item text (e.g., "Collect 5 Bandages" -> "collect-5-bandages")
+      const itemSlug = line.toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/-+/g, "-");
+      const key = `wow_detail_${entityId}_${prefix}_${itemSlug}`;
+      
       const isChecked = localStorage.getItem(key) === "true";
       const completedClass = isChecked ? "completed" : "";
       return `
