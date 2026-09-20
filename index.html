@@ -436,8 +436,8 @@ function applyFilters() {
       const levelClass = notes.level ? 'class="col-level has-note"' : 'class="col-level"';
       const zoneClass = zoneNoteText ? 'class="col-zone has-note"' : 'class="col-zone"';
 
-      const cleanZoneName = escapeHtml(item.zone).replace(/'/g, "\\'");
-      const zoneContent = `<a href="#" class="dungeon-link" onclick="openDetails('${cleanZoneName}', '${itemCategory}', event)">${escapeHtml(item.zone)}</a>`;
+      const encodedZoneName = encodeURIComponent(item.zone);
+      const zoneContent = `<a href="#" class="dungeon-link" onclick="openDetails('${encodedZoneName}', '${itemCategory}', event)">${escapeHtml(item.zone)}</a>`;
 
       const typePill = `<span class="type-tag ${tagClass}">${escapeHtml(item.type)}</span>`;
 
@@ -455,6 +455,7 @@ function applyFilters() {
   
   function openDetails(zoneName, category, event) {
     if (event) event.preventDefault();
+    const zoneName = decodeURIComponent(encodedZoneName);
     const panel = document.getElementById("detailsPanel");
     let backdrop = document.getElementById("modalBackdrop");
   
