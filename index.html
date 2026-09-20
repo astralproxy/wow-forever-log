@@ -436,7 +436,7 @@ function applyFilters() {
       const levelClass = notes.level ? 'class="col-level has-note"' : 'class="col-level"';
       const zoneClass = zoneNoteText ? 'class="col-zone has-note"' : 'class="col-zone"';
 
-      const encodedZoneName = encodeURIComponent(item.zone);
+      const encodedZoneName = encodeURIComponent(item.zone).replace(/'/g, "%27");
       const zoneContent = `<a href="#" class="dungeon-link" onclick="openDetails('${encodedZoneName}', '${itemCategory}', event)">${escapeHtml(item.zone)}</a>`;
 
       const typePill = `<span class="type-tag ${tagClass}">${escapeHtml(item.type)}</span>`;
