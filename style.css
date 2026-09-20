@@ -605,8 +605,8 @@ input[type="checkbox"] {
   
   .col-zone, .col-activity {
     white-space: normal;
-    min-width: 120px;
-    width: 50%;
+    min-width: 140px;
+    width: 65%;
   }
 
   /* Optional: Set explicit widths for remaining columns so they distribute nicely 
