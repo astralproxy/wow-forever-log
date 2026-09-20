@@ -121,7 +121,6 @@
   let currentCategory = "ALL";
 
   async function loadSheetData() {
-    // Pick and display a random loading message immediately
     const randomMsg = LOADING_MESSAGES[Math.floor(Math.random() * LOADING_MESSAGES.length)];
     const tbody = document.getElementById("tableBody");
     if (tbody) {
@@ -132,22 +131,22 @@
     }
     
     try {
-      // 1. Fetch main data and dungeon tab data concurrently
-      const [mainRes, dungeonRes] = await Promise.all([
+      // 1. Fetch main data, Dungeon, and Raid CSV tabs concurrently
+      const [mainRes, dungeonRes, raidRes] = await Promise.all([
         fetch(API_URL),
-        fetch(DUNGEON_CSV_URL)
+        fetch(DUNGEON_CSV_URL),
+        fetch(RAID_CSV_URL)
       ]);
   
       if (!mainRes.ok) throw new Error("Failed to fetch data");
       
       const data = await mainRes.json();
   
-      // 2. Parse Dungeon CSV tab into a lookup map
+      // Parse Dungeon CSV tab
       if (dungeonRes.ok) {
         const csvText = await dungeonRes.text();
         const parsedRows = parseCSV(csvText);
         
-        // Skip header row (index 0). Assuming Column B is Name (index 1)
         parsedRows.slice(1).forEach(row => {
           if (row.length > 1) {
             const dungeonName = row[1].trim().toLowerCase();
@@ -157,7 +156,27 @@
               location: row[2] || "",
               quests: row[3] || "",
               bosses: row[4] || "",
-              image: row[6] ? row[6].trim() : "" // Col G
+              image: row[6] ? row[6].trim() : ""
+            });
+          }
+        });
+      }
+
+      // Parse Raid CSV tab
+      if (raidRes.ok) {
+        const csvText = await raidRes.text();
+        const parsedRows = parseCSV(csvText);
+        
+        parsedRows.slice(1).forEach(row => {
+          if (row.length > 1) {
+            const raidName = row[1].trim().toLowerCase();
+            raidMap.set(raidName, {
+              level: row[0] || "",
+              name: row[1] || "",
+              location: row[2] || "",
+              quests: row[3] || "",
+              bosses: row[4] || "",
+              image: row[6] ? row[6].trim() : ""
             });
           }
         });
@@ -171,12 +190,13 @@
         cellNotes: item.cellNotes || { level: "", zone: "", type: "" }
       })).filter(item => item.zone.trim() !== "");
 
-      populateTypeFilterOptions(); // Populate dropdown options
+      populateTypeFilterOptions();
   
       currentSortColumn = 1;
       currentSortAsc = true;
       applyFilters();
     } catch (err) {
+      console.error(err);
       document.getElementById("tableBody").innerHTML = `
         <tr>
           <td colspan="3" class="status-msg" style="color: #ff6b6b;">
@@ -369,31 +389,34 @@ function applyFilters() {
       const tr = document.createElement("tr");
       if (isChecked) tr.classList.add("completed");
 
-      const isDungeon = item.type.toLowerCase().includes("dungeon");
-      const dungeonInfo = isDungeon ? dungeonMap.get(item.zone.toLowerCase().trim()) : null;
+      const rawType = item.type.toLowerCase();
+      let tagClass = "zone";
+      let itemCategory = "zone";
 
-      const dungeonLocation = dungeonInfo?.location || "";
-      const zoneNoteText = dungeonLocation || item.cellNotes.zone || "";
+      if (rawType.includes("dungeon")) {
+        tagClass = "dungeon";
+        itemCategory = "dungeon";
+      } else if (rawType.includes("raid")) {
+        tagClass = "raid";
+        itemCategory = "raid";
+      }
 
       const notes = item.cellNotes || {};
+      const dungeonInfo = itemCategory === "dungeon" ? dungeonMap.get(item.zone.toLowerCase().trim()) : null;
+      const raidInfo = itemCategory === "raid" ? raidMap.get(item.zone.toLowerCase().trim()) : null;
+
+      const detailLocation = dungeonInfo?.location || raidInfo?.location || "";
+      const zoneNoteText = detailLocation || notes.zone || "";
+
       const levelTooltip = notes.level ? `data-tooltip="${escapeHtml(notes.level)}"` : "";
       const zoneTooltip = zoneNoteText ? `data-tooltip="${escapeHtml(zoneNoteText)}"` : "";
 
       const levelClass = notes.level ? 'class="col-level has-note"' : 'class="col-level"';
       const zoneClass = zoneNoteText ? 'class="col-zone has-note"' : 'class="col-zone"';
 
-      // Hyperlink logic for Dungeon items
-      let zoneContent = escapeHtml(item.zone);
-      if (isDungeon) {
-        const cleanZoneName = escapeHtml(item.zone).replace(/'/g, "\\'");
-        zoneContent = `<a href="#" class="dungeon-link" onclick="openDungeonDetails('${cleanZoneName}', event)">${escapeHtml(item.zone)}</a>`;
-      }
-
-      // Type Pill Tag logic
-      const rawType = item.type.toLowerCase();
-      let tagClass = "zone";
-      if (rawType.includes("dungeon")) tagClass = "dungeon";
-      else if (rawType.includes("raid")) tagClass = "raid";
+      // Hyperlink logic for ALL items (Dungeons, Raids, and Zones)
+      const cleanZoneName = escapeHtml(item.zone).replace(/'/g, "\\'");
+      const zoneContent = `<a href="#" class="dungeon-link" onclick="openDetails('${cleanZoneName}', '${itemCategory}', event)">${escapeHtml(item.zone)}</a>`;
 
       const typePill = `<span class="type-tag ${tagClass}">${escapeHtml(item.type)}</span>`;
 
@@ -409,30 +432,52 @@ function applyFilters() {
     });
   }
   
-  function openDungeonDetails(zoneName, event) {
+  function openDetails(zoneName, category, event) {
     if (event) event.preventDefault();
     const panel = document.getElementById("detailsPanel");
     let backdrop = document.getElementById("modalBackdrop");
   
     const key = zoneName.toLowerCase().trim();
-    const data = dungeonMap.get(key);
-  
-    if (!data) {
+    let data = null;
+
+    if (category === "dungeon") {
+      data = dungeonMap.get(key);
+    } else if (category === "raid") {
+      data = raidMap.get(key);
+    }
+
+    if (!data && (category === "dungeon" || category === "raid")) {
       panel.innerHTML = `
         <div class="panel-header">
           <h3>${escapeHtml(zoneName)}</h3>
           <button onclick="closePanel()">&times;</button>
         </div>
-        <p style="color: var(--text-dim);">No detailed entry found in the Dungeon tab.</p>`;
+        <div class="panel-body">
+          <p style="color: var(--text-dim);">No detailed entry found in the ${escapeHtml(category)} tab.</p>
+        </div>`;
+    } else if (category === "zone") {
+      // Fallback details view for standard Zones from main table
+      const mainItem = rawTableData.find(i => i.zone.toLowerCase().trim() === key);
+      const notes = mainItem?.cellNotes || {};
+
+      panel.innerHTML = `
+        <div class="panel-header">
+          <h3>${escapeHtml(zoneName)}</h3>
+          <button onclick="closePanel()">&times;</button>
+        </div>
+        <div class="panel-body">
+          <p><strong>Level Range:</strong> ${escapeHtml(mainItem?.level || "N/A")}</p>
+          <p><strong>Type:</strong> Zone</p>
+          ${notes.zone ? `<p><strong>Notes:</strong><br>${escapeHtml(notes.zone)}</p>` : ''}
+        </div>`;
     } else {
       const formattedQuests = escapeHtml(data.quests).replace(/\n/g, '<br>');
       const formattedBosses = escapeHtml(data.bosses).replace(/\n/g, '<br>');
-  
-      // Construct image tag
+
       const imageHtml = data.image 
         ? `<img src="images/${escapeHtml(data.image)}.webp" alt="${escapeHtml(data.name)}" class="panel-thumb">`
         : '';
-  
+
       panel.innerHTML = `
         <div class="panel-header">
           <h3>${escapeHtml(data.name)}</h3>
@@ -449,7 +494,6 @@ function applyFilters() {
     
     panel.classList.add("active");
   
-    // Only trigger the backdrop overlay on screens <= 768px
     if (window.innerWidth <= 768) {
       if (!backdrop) {
         backdrop = document.createElement("div");
