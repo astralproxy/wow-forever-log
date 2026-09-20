@@ -150,13 +150,14 @@
         // Skip header row (index 0). Assuming Column B is Name (index 1)
         parsedRows.slice(1).forEach(row => {
           if (row.length > 1) {
-            const dungeonName = row[1].trim().toLowerCase(); // Col B
+            const dungeonName = row[1].trim().toLowerCase();
             dungeonMap.set(dungeonName, {
-              level: row[0] || "",      // Col A
-              name: row[1] || "",       // Col B
-              location: row[2] || "",   // Col C
-              quests: row[3] || "",     // Col D
-              bosses: row[4] || ""      // Col E
+              level: row[0] || "",
+              name: row[1] || "",
+              location: row[2] || "",
+              quests: row[3] || "",
+              bosses: row[4] || "",
+              image: row[6] ? row[6].trim() : "" // Col G
             });
           }
         });
@@ -416,28 +417,36 @@ function applyFilters() {
     const data = dungeonMap.get(key);
   
     if (!data) {
-      panel.innerHTML = `
-        <div class="panel-header">
-          <h3>${escapeHtml(zoneName)}</h3>
-          <button onclick="closePanel()">&times;</button>
-        </div>
-        <p style="color: var(--text-dim);">No detailed entry found in the Dungeon tab.</p>`;
-    } else {
-      const formattedQuests = escapeHtml(data.quests).replace(/\n/g, '<br>');
-      const formattedBosses = escapeHtml(data.bosses).replace(/\n/g, '<br>');
-  
-      panel.innerHTML = `
-        <div class="panel-header">
+    panel.innerHTML = `
+      <div class="panel-header">
+        <h3>${escapeHtml(zoneName)}</h3>
+        <button onclick="closePanel()">&times;</button>
+      </div>
+      <p style="color: var(--text-dim);">No detailed entry found in the Dungeon tab.</p>`;
+  } else {
+    const formattedQuests = escapeHtml(data.quests).replace(/\n/g, '<br>');
+    const formattedBosses = escapeHtml(data.bosses).replace(/\n/g, '<br>');
+
+    // Check for image name and construct path
+    const imageHtml = data.image 
+      ? `<img src="images/${escapeHtml(data.image)}.webp" alt="${escapeHtml(data.name)}" class="panel-thumb">`
+      : '';
+
+    panel.innerHTML = `
+      <div class="panel-header">
+        <div class="panel-title-group">
           <h3>${escapeHtml(data.name)}</h3>
-          <button onclick="closePanel()">&times;</button>
         </div>
-        <div class="panel-body">
-          <p><strong>Level:</strong> ${escapeHtml(data.level)}</p>
-          <p><strong>Location:</strong> ${escapeHtml(data.location)}</p>
-          <p><strong>Quests:</strong><br>${formattedQuests}</p>
-          <p><strong>Bosses:</strong><br>${formattedBosses}</p>
-        </div>`;
-    }
+        ${imageHtml}
+        <button onclick="closePanel()">&times;</button>
+      </div>
+      <div class="panel-body">
+        <p><strong>Level:</strong> ${escapeHtml(data.level)}</p>
+        <p><strong>Location:</strong> ${escapeHtml(data.location)}</p>
+        <p><strong>Quests:</strong><br>${formattedQuests}</p>
+        <p><strong>Bosses:</strong><br>${formattedBosses}</p>
+      </div>`;
+  }
     
     panel.classList.add("active");
   
