@@ -479,8 +479,8 @@ function applyFilters() {
           <p style="color: var(--text-dim);">No detailed entry found in the ${escapeHtml(category)} tab.</p>
         </div>`;
     } else {
-      const formattedQuests = escapeHtml(data.quests).replace(/\n/g, '<br>');
-      const formattedBosses = escapeHtml(data.bosses).replace(/\n/g, '<br>');
+      const formattedQuests = escapeHtml(data.quests || "").replace(/\n/g, '<br>');
+      const formattedBosses = escapeHtml(data.bosses || "").replace(/\n/g, '<br>');
 
       const imageHtml = data.image 
         ? `<img src="images/${escapeHtml(data.image)}.webp" alt="${escapeHtml(data.name)}" class="panel-thumb">`
@@ -578,7 +578,13 @@ function applyFilters() {
   }
 
   function escapeHtml(str) {
-    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    if (str === null || str === undefined) return "";
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
   }
 
   document.addEventListener("DOMContentLoaded", loadSheetData);
