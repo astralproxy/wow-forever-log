@@ -71,13 +71,13 @@
 
 /* Float thumbnail inside panel body */
 .panel-thumb {
-  float: right;
-  width: 35%;
+  width: 100%;
   aspect-ratio: 3 / 2;
   object-fit: cover;
-  border-radius: 4px;
+  display: block;
+  margin: 0 auto 1.2rem auto;
+  border-radius: 2px;
   border: 1px solid var(--border);
-  margin: 0 0 10px 12px;
 }
 
 .panel-header h3 {
@@ -132,12 +132,12 @@ padding: 0;
 .header-container {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 20px;
+  gap: 12px;
+  margin-bottom: 18px;
 }
 
 .header-logo {
-  height: 64px;
+  height: 48px;
   width: auto;
   object-fit: contain;
 }
@@ -151,7 +151,7 @@ h1 {
 .header-container h2 {
   color: var(--accent);
   margin: 0;
-  font-size: 1.6rem;
+  font-size: 1.5rem;
 }
 
 /* Pushes text to the far right */
