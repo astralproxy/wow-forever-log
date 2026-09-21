@@ -151,14 +151,14 @@ h1 {
 .header-container h2 {
   color: var(--accent);
   margin: 0;
-  font-size: 1.5rem;
+  font-size: 1.6rem;
 }
 
 /* Pushes text to the far right */
 .header-note {
   margin-left: auto;
   color: var(--text-dim);
-  font-size: 0.9rem;
+  font-size: 0.8rem;
 }
 
 /* Position relative needed for absolute positioning of the indicator */
@@ -248,8 +248,8 @@ td.has-note::after {
 }
 
 .sidebar-link.active {
-  background: rgba(245, 245, 245, 0.5);
-  color: var(--accent);
+  background: rgba(245, 245, 245, 0.2);
+  color: var(--text);
   font-weight: 600;
 }
 
