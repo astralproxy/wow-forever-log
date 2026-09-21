@@ -2,10 +2,10 @@
   --bg: #121214;
   --card-bg: #1e1e24;
   --border: #33333d;
-  --text: #e1e1e6;
+  --text: #E3E3E8;
   --text-dim: #a0a0b0;
-  --accent: #ffb800;
-  --row-hover: #262630;
+  --accent: #C3A77F;
+  --row-hover: #282833;
   --checked-bg: rgba(255, 184, 0, 0.08);
 }
 
@@ -18,14 +18,14 @@
 [data-tooltip]::before {
   content: attr(data-tooltip);
   position: absolute;
-  bottom: 100%;
-  left: 50%;
+  bottom: 90%;
+  left: 65%;
   transform: translateX(-50%);
   margin-bottom: 6px;
   padding: 6px 10px;
   background-color: #1a1a20;
   color: var(--text);
-  border: 1px solid #ffe58f;
+  border: 1px solid #635938;
   border-radius: 4px;
   font-size: 0.8rem;
   white-space: pre; /* Only breaks lines on explicit line breaks from the original data */
@@ -33,7 +33,7 @@
   pointer-events: none;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.05s ease-in-out; /* Instant hover fade */
+  transition: opacity 0.1s ease-in-out; /* Instant hover fade */
   z-index: 100;
 }
 
@@ -150,7 +150,7 @@
 
 /* Link Styling */
 .dungeon-link {
-  color: #fff176; /* Light yellow */
+  color: #E6C595; /* Light yellow */
   text-decoration: underline;
   cursor: pointer;
 }
@@ -195,7 +195,7 @@ h1 {
 .header-container h2 {
   color: var(--accent);
   margin: 0;
-  font-size: 1.8rem;
+  font-size: 1.7rem;
 }
 
 /* Pushes text to the far right */
@@ -416,19 +416,19 @@ white-space: nowrap; /* Prevents text wrapping so columns fit content cleanly */
 
 .type-tag.zone {
   background-color: rgba(76, 175, 80, 0.2);
-  color: #81c784; /* Green */
+  color: #83C986; /* Green */
   border: 1px solid rgba(76, 175, 80, 0.4);
 }
 
 .type-tag.dungeon {
   background-color: rgba(33, 150, 243, 0.2);
-  color: #64b5f6; /* Blue */
+  color: #65B6F7; /* Blue */
   border: 1px solid rgba(33, 150, 243, 0.4);
 }
 
 .type-tag.raid {
   background-color: rgba(255, 152, 0, 0.2);
-  color: #ffb74d; /* Orange */
+  color: #FFC24C; /* Orange */
   border: 1px solid rgba(255, 152, 0, 0.4);
 }
 
