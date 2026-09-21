@@ -60,7 +60,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--text-dim);
   padding-bottom: 8px;
   margin-bottom: 12px;
 }
@@ -71,8 +71,9 @@
 
 /* Float thumbnail inside panel body */
 .panel-thumb {
-  width: 100%;
+  width: 80%;
   aspect-ratio: 3 / 2;
+  max-height: 250px;
   object-fit: cover;
   display: block;
   margin: 0 auto 1.2rem auto;
@@ -102,6 +103,13 @@
   font-size: 1.1rem;
   line-height: 1.5;
   white-space: pre-line; /* Preserves newlines from Google Sheets data */
+}
+
+/* horizontal divider */
+.panel-body hr {
+  border: 0;
+  border-top: 1px solid var(--text-dim, #ccc);
+  margin: 12px 0;
 }
 
 /* Link Styling */
