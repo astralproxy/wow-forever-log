@@ -151,7 +151,7 @@ h1 {
 .header-container h2 {
   color: var(--accent);
   margin: 0;
-  font-size: 1.7rem;
+  font-size: 1.6rem;
 }
 
 /* Pushes text to the far right */
@@ -212,83 +212,83 @@ td.has-note::after {
 }
 
 .sidebar-title {
-color: var(--accent);
-font-weight: 700;
-font-size: 0.85rem;
-text-transform: uppercase;
-letter-spacing: 0.05em;
-margin-bottom: 12px;
-padding-bottom: 8px;
-border-bottom: 1px solid var(--border);
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
 }
 
 .sidebar-menu {
-list-style: none;
-padding: 0;
-margin: 0;
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
 .sidebar-menu li {
-margin-bottom: 4px;
+  margin-bottom: 4px;
 }
 
 .sidebar-link {
-display: block;
-padding: 8px 12px;
-color: var(--text-dim);
-text-decoration: none;
-font-size: 0.9rem;
-border-radius: 4px;
-transition: background 0.15s ease, color 0.15s ease;
+  display: block;
+  padding: 8px 12px;
+  color: var(--text-dim);
+  text-decoration: none;
+  font-size: 0.9rem;
+  border-radius: 4px;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
 .sidebar-link:hover {
-background: var(--row-hover);
-color: var(--text);
+  background: var(--row-hover);
+  color: var(--text);
 }
 
 .sidebar-link.active {
-background: rgba(255, 184, 0, 0.12);
-color: var(--accent);
-font-weight: 600;
+  background: rgba(245, 245, 245, 0.5);
+  color: var(--accent);
+  font-weight: 600;
 }
 
 .filter-bar {
-display: flex;
-gap: 16px;
-margin-bottom: 16px;
-flex-wrap: wrap;
-background: var(--card-bg);
-padding: 12px 16px;
-border-radius: 8px;
-border: 1px solid var(--border);
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  background: var(--card-bg);
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
 }
 
 .filter-group {
-display: flex;
-align-items: center;
-gap: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .filter-group label {
-color: var(--text-dim);
-font-size: 0.9rem;
-font-weight: 600;
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  font-weight: 600;
 }
 
 .filter-group select {
-background: #17171c;
-color: var(--text);
-border: 1px solid var(--border);
-padding: 6px 12px;
-border-radius: 4px;
-font-size: 0.9rem;
-outline: none;
-cursor: pointer;
+  background: #17171c;
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  outline: none;
+  cursor: pointer;
 }
 
 .filter-group select:focus {
-border-color: var(--accent);
+  border-color: var(--accent);
 }
 
 /* Align search box to right side of filter bar */
@@ -314,30 +314,30 @@ border-color: var(--accent);
 
 /* Allow table container to fit the content without stretching */
 .table-container {
-overflow-x: auto;
-background: var(--card-bg);
-border-radius: 8px;
-border: 1px solid var(--border);
-box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-display: block; /* Ensures it fills width rather than shrink-wrapping */
-max-width: 100%;
+  overflow-x: auto;
+  background: var(--card-bg);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  display: block; /* Ensures it fills width rather than shrink-wrapping */
+  max-width: 100%;
 }
 
 /* UPDATE table layout to auto-fit content */
 table {
-width: 100%;
-border-collapse: collapse;
-text-align: left;
-table-layout: auto; /* Ensure auto-sizing based on cell contents */
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  table-layout: auto; /* Ensure auto-sizing based on cell contents */
 }
 
 th, td {
-padding-top: 12px;
-padding-bottom: 12px;
-padding-left: 16px;
-padding-right: 36px; /* 16px base padding + 20px extra right buffer */
-border-bottom: 1px solid var(--border);
-white-space: nowrap; /* Prevents text wrapping so columns fit content cleanly */
+  padding-top: 12px;
+  padding-bottom: 12px;
+  padding-left: 16px;
+  padding-right: 36px; /* 16px base padding + 20px extra right buffer */
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap; /* Prevents text wrapping so columns fit content cleanly */
 }
 
 /* REPLACE fixed column width classes with auto-sizing rules: */
@@ -429,7 +429,7 @@ input[type="checkbox"] {
   width: 18px;
   height: 18px;
   cursor: pointer;
-  accent-color: var(--accent);
+  accent-color: var(--checked-bg);
 }
 
 .status-msg {
@@ -449,7 +449,7 @@ input[type="checkbox"] {
   box-shadow: 0 4px 12px rgba(0,0,0,0.3);
   display: block; /* permanently displayed on wide screens */
   position: sticky;
-  top: 20px;
+  top: 16px;
   box-sizing: border-box;
 }
 
