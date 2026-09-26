@@ -25,6 +25,7 @@
         <li><a href="#" class="sidebar-link" onclick="filterByCategory('Dungeons', this)">Dungeons</a></li>
         <li><a href="#" class="sidebar-link" onclick="filterByCategory('Raids', this)">Raids</a></li>
         <li><a href="#" class="sidebar-link" onclick="filterByCategory('Zones', this)">Zones</a></li>
+        <li><a href="#" class="sidebar-link" onclick="filterByCategory('Legacy', this)">Legacy</a></li>
       </ul>
     </aside>
 
@@ -33,7 +34,7 @@
 
       <!-- FILTERS at top of page -->
       <div class="filter-bar">
-        <div class="filter-group">
+        <div class="filter-group" id="contentFilters">
           <label for="toggleProgress">
             <input type="checkbox" id="toggleProgress" checked onchange="toggleProgressColumn()"> Show Progress
           </label>
@@ -79,6 +80,13 @@
             </tr>
           </tbody>
         </table>
+        <table id="legacyTable" hidden>
+          <tbody>
+            <tr>
+              <td class="status-msg">Loading Legacy achievements...</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
     <!-- Side Details Panel -->
@@ -115,10 +123,13 @@
   const DUNGEON_CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=Dungeons`;
   const RAID_CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=Raids`;
   const ZONE_CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=Zones`;
+  const LEGACY_CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=Legacy`;
 
   let dungeonMap = new Map(); // Store dungeon lookup data keyed by name
   let raidMap = new Map(); // Store raid lookup data keyed by name
   let zoneMap = new Map(); // Store zone lookup data keyed by name
+  let legacyColumns = [];
+  let legacyRows = [];
 
   let rawTableData = [];
   let filteredData = [];
@@ -138,11 +149,12 @@
     
     try {
       // 1. Fetch main data, Dungeon, Raid, and Zone CSV tabs concurrently
-      const [mainRes, dungeonRes, raidRes, zoneRes] = await Promise.all([
+      const [mainRes, dungeonRes, raidRes, zoneRes, legacyRes] = await Promise.all([
         fetch(API_URL),
         fetch(DUNGEON_CSV_URL),
         fetch(RAID_CSV_URL),
-        fetch(ZONE_CSV_URL)
+        fetch(ZONE_CSV_URL),
+        fetch(LEGACY_CSV_URL).catch(() => null)
       ]);
   
       if (!mainRes.ok) throw new Error("Failed to fetch data");
@@ -204,6 +216,19 @@
             });
           }
         });
+      }
+
+      if (legacyRes?.ok) {
+        const parsedRows = parseCSV(await legacyRes.text());
+        legacyColumns = (parsedRows[0] || [])
+          .map((name, index) => ({ name, index }))
+          .filter(column => column.name.trim() !== "");
+        legacyRows = parsedRows.slice(1)
+          .filter(row => legacyColumns.some(column => (row[column.index] || "").trim() !== ""))
+          .map(row => ({
+            values: legacyColumns.map(column => row[column.index] || ""),
+            id: encodeURIComponent(legacyColumns.map(column => row[column.index] || "").join("|").toLowerCase())
+          }));
       }
   
       rawTableData = data.map(item => ({
@@ -289,16 +314,29 @@
     // Update active state class on sidebar links
     document.querySelectorAll(".sidebar-link").forEach(link => link.classList.remove("active"));
     if (element) element.classList.add("active");
+
+    const isLegacy = category.toLowerCase() === "legacy";
+    document.getElementById("checklistTable").hidden = isLegacy;
+    document.getElementById("legacyTable").hidden = !isLegacy;
+    document.getElementById("contentFilters").hidden = isLegacy;
+    document.querySelector(".content-body").classList.toggle("legacy-view", isLegacy);
   
     applyFilters();
   }
 
 function applyFilters() {
+  if (currentCategory.toLowerCase() === "legacy") {
+    renderLegacyTable();
+    return;
+  }
+
   const levelFilter = document.getElementById("filterLevel")?.value || "ALL";
   const typeFilter = document.getElementById("filterType")?.value || "ALL";
   const searchVal = document.getElementById("filterSearch")?.value.trim() || "";
 
   filteredData = rawTableData.filter(item => {
+    if (item.type.toLowerCase().includes("legacy")) return false;
+
     let matchesLevel = true;
     let matchesType = true;
     let matchesCategory = true;
@@ -339,6 +377,59 @@ function applyFilters() {
 
   renderTable();
 }
+
+  function renderLegacyTable() {
+    const table = document.getElementById("legacyTable");
+    const searchValue = document.getElementById("filterSearch").value.trim().toLowerCase();
+    table.replaceChildren();
+    const header = table.createTHead();
+    const headerRow = header.insertRow();
+    const checkboxHeader = document.createElement("th");
+    checkboxHeader.className = "no-sort";
+    headerRow.appendChild(checkboxHeader);
+
+    legacyColumns.forEach(column => {
+      const cell = document.createElement("th");
+      cell.textContent = column.name;
+      headerRow.appendChild(cell);
+    });
+
+    const tbody = table.createTBody();
+    const visibleRows = legacyRows.filter(row =>
+      !searchValue || row.values.join(" ").toLowerCase().includes(searchValue)
+    );
+
+    if (visibleRows.length === 0) {
+      const row = tbody.insertRow();
+      const cell = row.insertCell();
+      cell.colSpan = legacyColumns.length + 1;
+      cell.className = "status-msg";
+      cell.textContent = legacyRows.length === 0
+        ? "No Legacy achievements are available."
+        : "No achievements match the search.";
+      return;
+    }
+
+    visibleRows.forEach(legacyRow => {
+      const row = tbody.insertRow();
+      const checkboxCell = row.insertCell();
+      checkboxCell.className = "col-cb";
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.checked = localStorage.getItem(`wow_legacy_${legacyRow.id}`) === "true";
+      if (checkbox.checked) row.classList.add("completed");
+      checkbox.addEventListener("change", () => {
+        localStorage.setItem(`wow_legacy_${legacyRow.id}`, checkbox.checked);
+        row.classList.toggle("completed", checkbox.checked);
+      });
+      checkboxCell.appendChild(checkbox);
+
+      legacyRow.values.forEach(value => {
+        const cell = row.insertCell();
+        cell.textContent = value;
+      });
+    });
+  }
 
   function checkLevelMatch(itemLevelStr, targetRange) {
     const cleanLevel = itemLevelStr.replace('?', '').trim();

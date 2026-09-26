@@ -13,7 +13,7 @@ This project is a static front-end app built with HTML, CSS, and a single embedd
 The app does a few core things:
 
 - Loads content from a spreadsheet-backed data source
-- Groups entries into Dungeons, Raids, and Zones
+- Groups entries into Dungeons, Raids, and Zones, with Legacy achievements in a separate view
 - Allows filtering by level, category, and search text
 - Tracks checked items using browser localStorage
 - Shows quest and boss progress in a table and a side detail panel
@@ -47,11 +47,12 @@ If you need to re-establish the project quickly, rely on the following facts:
 
 ## Important implementation details
 
-- The app loads the main checklist from the API URL and separately loads Dungeons, Raids, and Zones tabs from the spreadsheet.
+- The app loads the main checklist from the API URL and separately loads Dungeons, Raids, Zones, and Legacy tabs from the spreadsheet.
 - Each detail tab is parsed into a lookup map keyed by the entry name to support quick retrieval when a row is selected.
 - The table and detail panel both rely on stable IDs generated from the item name, which must stay consistent for progress tracking.
 - Every checked row or sub-item is saved in localStorage with a key based on its entity and checklist type.
 - Progress in the table is calculated by counting how many quest or boss items are marked complete for that entry.
+- Legacy achievements are displayed only in their sidebar view and use separate persistent completion checkboxes.
 - Sorting logic treats level values as numbers where possible, while still tolerating values like `?`.
 
 ## Code evaluation
@@ -76,7 +77,7 @@ If you need to re-establish the project quickly, rely on the following facts:
 The JavaScript in the page is organized around a few main responsibilities:
 
 - `loadSheetData()`
-  - Fetches the main dataset plus the Dungeons, Raids, and Zones sheets.
+  - Fetches the main dataset plus the Dungeons, Raids, Zones, and Legacy sheets.
   - Parses the spreadsheet content into lookup maps for detailed data.
   - Initializes filters and render state once the data is loaded.
 
@@ -89,7 +90,7 @@ The JavaScript in the page is organized around a few main responsibilities:
   - Keeps the filter dropdown in sync with actual data values.
 
 - `filterByCategory()`
-  - Handles sidebar category navigation such as All Content, Dungeons, Raids, and Zones.
+  - Handles sidebar category navigation such as All Content, Dungeons, Raids, Zones, and Legacy.
   - Updates active styling and re-applies the current filters.
 
 - `applyFilters()`

@@ -56,6 +56,15 @@
   min-width: 200;
 }
 
+.content-body.legacy-view .table-container {
+  flex: 1 1 100%;
+  min-width: 0;
+}
+
+.content-body.legacy-view #detailsPanel {
+  display: none !important;
+}
+
 .panel-header {
   display: flex;
   justify-content: space-between;
@@ -627,6 +636,6 @@ input[type="checkbox"] {
   }
   
   .col-progress {
-    width: 30%;*/
-  }
+    width: 30%;
+  }*/
 }
