@@ -254,7 +254,14 @@
   
       currentSortColumn = 1;
       currentSortAsc = true;
-      applyFilters();
+      const requestedCategory = new URLSearchParams(window.location.search).get("nav");
+      const categories = ["ALL", "Dungeons", "Raids", "Zones", "Legacy"];
+      currentCategory = categories.find(category => category.toLowerCase() === requestedCategory?.toLowerCase()) || "ALL";
+      const activeLink = [...document.querySelectorAll(".sidebar-link")].find(link => {
+        const label = currentCategory === "ALL" ? "all content" : currentCategory.toLowerCase();
+        return link.textContent.trim().toLowerCase() === label;
+      });
+      filterByCategory(currentCategory, activeLink);
     } catch (err) {
       console.error(err);
       document.getElementById("tableBody").innerHTML = `
@@ -321,6 +328,10 @@
   function filterByCategory(category, element, event) {
     if (event) event.preventDefault();
     currentCategory = category;
+
+    const url = new URL(window.location.href);
+    url.searchParams.set("nav", category);
+    window.history.replaceState(null, "", url);
   
     // Update active state class on sidebar links
     document.querySelectorAll(".sidebar-link").forEach(link => link.classList.remove("active"));
