@@ -330,7 +330,11 @@
     currentCategory = category;
 
     const url = new URL(window.location.href);
-    url.searchParams.set("nav", category);
+    if (category === "ALL") {
+      url.searchParams.delete("nav");
+    } else {
+      url.searchParams.set("nav", category);
+    }
     window.history.replaceState(null, "", url);
   
     // Update active state class on sidebar links
@@ -415,6 +419,11 @@ function applyFilters() {
     legacyColumns.forEach(column => {
       const cell = document.createElement("th");
       cell.textContent = column.name;
+      if (column.name.trim().toLowerCase() === "description") {
+        cell.classList.add("legacy-description");
+      } else if (column.name.trim().toLowerCase() === "challenge") {
+        cell.classList.add("legacy-challenge");
+      }
       headerRow.appendChild(cell);
     });
 
@@ -460,9 +469,14 @@ function applyFilters() {
       });
       checkboxCell.appendChild(checkbox);
 
-      legacyRow.values.forEach(value => {
+      legacyRow.values.forEach((value, index) => {
         const cell = row.insertCell();
         cell.textContent = value;
+        if (legacyColumns[index]?.name.trim().toLowerCase() === "description") {
+          cell.classList.add("legacy-description");
+        } else if (legacyColumns[index]?.name.trim().toLowerCase() === "challenge") {
+          cell.classList.add("legacy-challenge");
+        }
       });
     });
   }

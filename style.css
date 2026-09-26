@@ -348,6 +348,20 @@ table {
   table-layout: auto; /* Ensure auto-sizing based on cell contents */
 }
 
+#legacyTable {
+  table-layout: auto;
+}
+
+#legacyTable .legacy-description {
+  width: 40%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+#legacyTable .legacy-challenge {
+  width: max-content;
+}
+
 th, td {
   padding-top: 12px;
   padding-bottom: 12px;
