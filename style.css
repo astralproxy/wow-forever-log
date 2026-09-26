@@ -348,18 +348,65 @@ table {
   table-layout: auto; /* Ensure auto-sizing based on cell contents */
 }
 
-#legacyTable {
-  table-layout: auto;
+#checklistTable {
+  table-layout: fixed;
 }
 
-#legacyTable .legacy-description {
-  width: 40%;
+#checklistTable th,
+#checklistTable td {
+  padding-left: 8px;
+  padding-right: 8px;
   white-space: normal;
   overflow-wrap: anywhere;
 }
 
-#legacyTable .legacy-challenge {
-  width: max-content;
+#checklistTable .col-cb {
+  width: 8%;
+  padding-left: 2px;
+  padding-right: 2px;
+}
+
+#checklistTable .col-level {
+  width: 16%;
+}
+
+#checklistTable .col-zone {
+  width: 46%;
+}
+
+#checklistTable .col-progress {
+  width: 30%;
+}
+
+#legacyTable {
+  width: 100%;
+  table-layout: fixed;
+}
+
+#legacyTable th,
+#legacyTable td {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+#legacyTable th:first-child,
+#legacyTable td:first-child {
+  width: 44px;
+}
+
+#legacyTable .legacy-description {
+  width: auto;
+}
+
+#legacyTable .legacy-type {
+  width: 12ch;
+  padding-left: 8px;
+  padding-right: 8px;
+  white-space: nowrap;
+}
+
+#legacyTable .legacy-tooltip {
+  display: none;
 }
 
 th, td {
@@ -514,7 +561,11 @@ input[type="checkbox"] {
 }
 
 /* MOBILE (narrow screen) OVERRIDES */
-@media (max-width: 768px) {
+@media (max-width: 960px) {
+  body.modal-open {
+    overflow: hidden;
+  }
+
   body {
     padding: 12px;
   }
@@ -628,16 +679,59 @@ input[type="checkbox"] {
     padding-right: 16px;
   }
 
-  /* Ensure the table distributes column percentages correctly */
-  #checklistTable {
-    width: 100%;
-    table-layout: fixed;
+  #legacyTable .legacy-description {
+    display: none;
   }
-  
-  .col-zone, .col-activity {
+
+  #legacyTable .legacy-challenge[data-description] {
+    position: relative;
+  }
+
+  #legacyTable .legacy-challenge.has-note::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 0 6px 6px 0;
+    border-color: transparent var(--accent) transparent transparent;
+    pointer-events: none;
+  }
+
+  #legacyTable .legacy-tooltip {
+    display: block;
+    position: absolute;
+    bottom: calc(100% + 6px);
+    right: 0;
+    z-index: 101;
+    width: min(75vw, 320px);
+    max-width: calc(100% - 20px);
+    box-sizing: border-box;
+    padding: 6px 10px;
+    background: #1a1a20;
+    color: var(--text);
+    border: 1px solid #635938;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 400;
+    line-height: 1.4;
     white-space: normal;
-    min-width: 140px;
-    width: 65%;
+    overflow-wrap: anywhere;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  #legacyTable .legacy-challenge[data-description]:hover .legacy-tooltip {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .col-activity {
+    white-space: normal;
   }
 
   /* Optional: Set explicit widths for remaining columns so they distribute nicely 

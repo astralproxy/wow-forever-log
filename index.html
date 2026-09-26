@@ -21,7 +21,7 @@
     <aside class="wiki-sidebar">
       <div class="sidebar-title">Navigation</div>
       <ul class="sidebar-menu">
-        <li><a href="#" class="sidebar-link active" onclick="filterByCategory('ALL', this)">All Content</a></li>
+        <li><a href="#" class="sidebar-link active" onclick="filterByCategory('ALL', this)">ALL</a></li>
         <li><a href="#" class="sidebar-link" onclick="filterByCategory('Dungeons', this)">Dungeons</a></li>
         <li><a href="#" class="sidebar-link" onclick="filterByCategory('Raids', this)">Raids</a></li>
         <li><a href="#" class="sidebar-link" onclick="filterByCategory('Zones', this)">Zones</a></li>
@@ -409,6 +409,10 @@ function applyFilters() {
     const table = document.getElementById("legacyTable");
     const searchValue = document.getElementById("filterSearch").value.trim().toLowerCase();
     const legacyTypeFilter = document.getElementById("filterLegacyType")?.value.trim().toLowerCase() || "all";
+    const visibleColumns = legacyColumns
+      .map((column, valueIndex) => ({ ...column, valueIndex }))
+      .filter(column => column.name.trim().toLowerCase() !== "reward");
+    const descriptionIndex = legacyColumns.findIndex(column => column.name.trim().toLowerCase() === "description");
     table.replaceChildren();
     const header = table.createTHead();
     const headerRow = header.insertRow();
@@ -416,13 +420,15 @@ function applyFilters() {
     checkboxHeader.className = "no-sort";
     headerRow.appendChild(checkboxHeader);
 
-    legacyColumns.forEach(column => {
+    visibleColumns.forEach(column => {
       const cell = document.createElement("th");
       cell.textContent = column.name;
       if (column.name.trim().toLowerCase() === "description") {
         cell.classList.add("legacy-description");
       } else if (column.name.trim().toLowerCase() === "challenge") {
         cell.classList.add("legacy-challenge");
+      } else if (column.name.trim().toLowerCase() === "type") {
+        cell.classList.add("legacy-type");
       }
       headerRow.appendChild(cell);
     });
@@ -447,7 +453,7 @@ function applyFilters() {
     if (visibleRows.length === 0) {
       const row = tbody.insertRow();
       const cell = row.insertCell();
-      cell.colSpan = legacyColumns.length + 1;
+      cell.colSpan = visibleColumns.length + 1;
       cell.className = "status-msg";
       cell.textContent = legacyRows.length === 0
         ? "No Legacy achievements are available."
@@ -469,13 +475,25 @@ function applyFilters() {
       });
       checkboxCell.appendChild(checkbox);
 
-      legacyRow.values.forEach((value, index) => {
+      visibleColumns.forEach(column => {
         const cell = row.insertCell();
+        const value = legacyRow.values[column.valueIndex];
         cell.textContent = value;
-        if (legacyColumns[index]?.name.trim().toLowerCase() === "description") {
+        if (column.name.trim().toLowerCase() === "description") {
           cell.classList.add("legacy-description");
-        } else if (legacyColumns[index]?.name.trim().toLowerCase() === "challenge") {
+        } else if (column.name.trim().toLowerCase() === "challenge") {
           cell.classList.add("legacy-challenge");
+          const description = legacyRow.values[descriptionIndex] || "";
+          if (description) {
+            cell.classList.add("has-note");
+            cell.setAttribute("data-description", description);
+            const tooltip = document.createElement("span");
+            tooltip.className = "legacy-tooltip";
+            tooltip.textContent = description;
+            cell.appendChild(tooltip);
+          }
+        } else if (column.name.trim().toLowerCase() === "type") {
+          cell.classList.add("legacy-type");
         }
       });
     });
@@ -662,7 +680,7 @@ function applyFilters() {
     
     panel.classList.add("active");
   
-    if (window.innerWidth <= 768) {
+    if (window.innerWidth <= 960) {
       if (!backdrop) {
         backdrop = document.createElement("div");
         backdrop.id = "modalBackdrop";
@@ -671,6 +689,7 @@ function applyFilters() {
         document.body.appendChild(backdrop);
       }
       backdrop.classList.add("active");
+      document.body.classList.add("modal-open");
     }
   }
 
@@ -711,6 +730,7 @@ function applyFilters() {
   function closePanel() {
     document.getElementById("detailsPanel")?.classList.remove("active");
     document.getElementById("modalBackdrop")?.classList.remove("active");
+    document.body.classList.remove("modal-open");
   }
 
   function toggleCheck(id, checkbox) {
