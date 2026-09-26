@@ -694,6 +694,7 @@ function applyFilters() {
   }
 
   function renderListWithCheckboxes(rawText, entityId, prefix) {
+    if (isTbd(rawText)) return escapeHtml(rawText.trim());
     if (!rawText || !rawText.trim()) return '<span style="color: var(--text-dim);">None</span>';
     
     const lines = rawText.split('\n').map(l => l.trim()).filter(l => l !== "");
@@ -712,6 +713,10 @@ function applyFilters() {
           </label>
         </div>`;
     }).join("");
+  }
+
+  function isTbd(rawText) {
+    return typeof rawText === "string" && rawText.trim().toLowerCase() === "tbd";
   }
 
   function toggleDetailCheck(key, checkbox) {
@@ -796,11 +801,15 @@ function applyFilters() {
     const bossStats = countCategoryProgress(data?.bosses, entityId, "boss");
 
     let html = "";
-    if (questStats.total > 0) {
+    if (isTbd(data?.quests)) {
+      html += `Quests: ${escapeHtml(data.quests.trim())}<br>`;
+    } else if (questStats.total > 0) {
       const qDone = questStats.checked === questStats.total;
       html += `Quests (${questStats.checked}/${questStats.total})${qDone ? ' ✅' : ''}<br>`;
     }
-    if (bossStats.total > 0) {
+    if (isTbd(data?.bosses)) {
+      html += `Bosses: ${escapeHtml(data.bosses.trim())}`;
+    } else if (bossStats.total > 0) {
       const bDone = bossStats.checked === bossStats.total;
       html += `Bosses (${bossStats.checked}/${bossStats.total})${bDone ? ' ✅' : ''}`;
     }
@@ -809,7 +818,7 @@ function applyFilters() {
   }
 
   function countCategoryProgress(rawText, entityId, prefix) {
-    if (!rawText || !rawText.trim()) return { checked: 0, total: 0 };
+    if (!rawText || !rawText.trim() || isTbd(rawText)) return { checked: 0, total: 0 };
     
     const lines = rawText.split('\n').map(l => l.trim()).filter(l => l !== "");
     let checkedCount = 0;
