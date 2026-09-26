@@ -56,6 +56,17 @@
           </select>-->
         </div>
 
+        <div class="filter-group" id="legacyFilters" hidden>
+          <label for="filterLegacyType">Type:</label>
+          <select id="filterLegacyType" onchange="applyFilters()">
+            <option value="ALL">All Types</option>
+            <option value="class">Class</option>
+            <option value="profession">Profession</option>
+            <option value="adventure">Adventure</option>
+            <option value="pvp">PvP</option>
+          </select>
+        </div>
+
         <div class="filter-group filter-search">
           <label for="filterSearch">Search:</label>
           <input type="text" id="filterSearch" placeholder="Search..." oninput="applyFilters()">
@@ -319,6 +330,7 @@
     document.getElementById("checklistTable").hidden = isLegacy;
     document.getElementById("legacyTable").hidden = !isLegacy;
     document.getElementById("contentFilters").hidden = isLegacy;
+    document.getElementById("legacyFilters").hidden = !isLegacy;
     document.querySelector(".content-body").classList.toggle("legacy-view", isLegacy);
   
     applyFilters();
@@ -381,6 +393,7 @@ function applyFilters() {
   function renderLegacyTable() {
     const table = document.getElementById("legacyTable");
     const searchValue = document.getElementById("filterSearch").value.trim().toLowerCase();
+    const legacyTypeFilter = document.getElementById("filterLegacyType")?.value.trim().toLowerCase() || "all";
     table.replaceChildren();
     const header = table.createTHead();
     const headerRow = header.insertRow();
@@ -395,9 +408,21 @@ function applyFilters() {
     });
 
     const tbody = table.createTBody();
-    const visibleRows = legacyRows.filter(row =>
-      !searchValue || row.values.join(" ").toLowerCase().includes(searchValue)
-    );
+    const visibleRows = legacyRows.filter(row => {
+      const rowText = row.values.join(" ").toLowerCase();
+      const matchesSearch = !searchValue || rowText.includes(searchValue);
+      if (!matchesSearch) return false;
+
+      if (legacyTypeFilter !== "all") {
+        // Find the "Type" column dynamically if present
+        const typeColIndex = legacyColumns.findIndex(c => c.name.toLowerCase() === "type");
+        if (typeColIndex !== -1) {
+          const rowType = (row.values[typeColIndex] || "").trim().toLowerCase();
+          if (rowType !== legacyTypeFilter) return false;
+        }
+      }
+      return true;
+    });
 
     if (visibleRows.length === 0) {
       const row = tbody.insertRow();
