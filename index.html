@@ -25,6 +25,7 @@
         <li><a href="#" class="sidebar-link" onclick="filterByCategory('Dungeons', this)">Dungeons</a></li>
         <li><a href="#" class="sidebar-link" onclick="filterByCategory('Raids', this)">Raids</a></li>
         <li><a href="#" class="sidebar-link" onclick="filterByCategory('Zones', this)">Zones</a></li>
+        <li><a href="#" class="sidebar-link" onclick="filterByCategory('Camping', this)">Camping</a></li>
         <li><a href="#" class="sidebar-link" onclick="filterByCategory('Legacy', this)">Legacy</a></li>
       </ul>
     </aside>
@@ -67,6 +68,13 @@
           </select>
         </div>
 
+        <div class="filter-group" id="campingFilters" style="display: none;">
+          <label for="filterCampingType">Type:</label>
+          <select id="filterCampingType" onchange="applyFilters()">
+            <option value="ALL">All Types</option>
+          </select>
+        </div>
+
         <div class="filter-group filter-search">
           <label for="filterSearch">Search:</label>
           <input type="text" id="filterSearch" placeholder="Search..." oninput="applyFilters()">
@@ -95,6 +103,20 @@
           <tbody>
             <tr>
               <td class="status-msg">Loading Legacy achievements...</td>
+            </tr>
+          </tbody>
+        </table>
+        <table id="campingTable" hidden>
+          <thead>
+            <tr>
+              <th onclick="sortCampingTable(0)" aria-sort="none">Skill</th>
+              <th onclick="sortCampingTable(1)" aria-sort="none">Type</th>
+              <th onclick="sortCampingTable(2)" aria-sort="none">Item</th>
+            </tr>
+          </thead>
+          <tbody id="campingTableBody">
+            <tr>
+              <td colspan="3" class="status-msg">Loading Camping data...</td>
             </tr>
           </tbody>
         </table>
@@ -135,20 +157,53 @@
   const RAID_CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=Raids`;
   const ZONE_CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=Zones`;
   const LEGACY_CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=Legacy`;
+  const CAMPING_CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=Camping`;
 
   let dungeonMap = new Map(); // Store dungeon lookup data keyed by name
   let raidMap = new Map(); // Store raid lookup data keyed by name
   let zoneMap = new Map(); // Store zone lookup data keyed by name
   let legacyColumns = [];
   let legacyRows = [];
+  let campingRows = [];
+  let campingSortColumn = -1;
+  let campingSortAsc = true;
 
   let rawTableData = [];
   let filteredData = [];
+  let mainDataAvailable = true;
   let currentSortColumn = -1;
   let currentSortAsc = true;
   let currentCategory = "ALL";
 
+  async function loadCampingData() {
+    try {
+      const response = await fetch(CAMPING_CSV_URL);
+      if (!response.ok) throw new Error("Failed to fetch Camping data");
+
+      const parsedRows = parseCSV(await response.text());
+      campingRows = parsedRows.slice(1)
+        .filter(row => row.slice(0, 6).some(value => (value || "").trim() !== ""))
+        .map((row, index) => ({
+          skill: row[0] || "",
+          type: row[1] || "",
+          item: row[2] || "",
+          description: row[3] || "",
+          tier: row[4] || "",
+          reagents: row[5] || "",
+          id: encodeURIComponent(`${row[0] || ""}|${row[1] || ""}|${row[2] || ""}|${index}`)
+        }));
+
+      populateCampingTypeFilterOptions();
+      if (currentCategory.toLowerCase() === "camping") renderCampingTable();
+    } catch (error) {
+      console.error(error);
+      campingRows = [];
+      if (currentCategory.toLowerCase() === "camping") renderCampingTable();
+    }
+  }
+
   async function loadSheetData() {
+    loadCampingData();
     const randomMsg = LOADING_MESSAGES[Math.floor(Math.random() * LOADING_MESSAGES.length)];
     const tbody = document.getElementById("tableBody");
     if (tbody) {
@@ -168,9 +223,8 @@
         fetch(LEGACY_CSV_URL).catch(() => null)
       ]);
   
-      if (!mainRes.ok) throw new Error("Failed to fetch data");
-      
-      const data = await mainRes.json();
+      mainDataAvailable = mainRes.ok;
+      const data = mainRes.ok ? await mainRes.json() : [];
   
       // Parse Dungeon CSV tab
       if (dungeonRes.ok) {
@@ -241,7 +295,7 @@
             id: encodeURIComponent(legacyColumns.map(column => row[column.index] || "").join("|").toLowerCase())
           }));
       }
-  
+
       rawTableData = data.map(item => ({
         id: (item.zone || "").toLowerCase().replace(/[^a-z0-9]/g, "-"),
         level: item.level || "",
@@ -255,7 +309,7 @@
       currentSortColumn = 1;
       currentSortAsc = true;
       const requestedCategory = new URLSearchParams(window.location.search).get("nav");
-      const categories = ["ALL", "Dungeons", "Raids", "Zones", "Legacy"];
+      const categories = ["ALL", "Dungeons", "Raids", "Zones", "Camping", "Legacy"];
       currentCategory = categories.find(category => category.toLowerCase() === requestedCategory?.toLowerCase()) || "ALL";
       const activeLink = [...document.querySelectorAll(".sidebar-link")].find(link => {
         const label = currentCategory === "ALL" ? "all content" : currentCategory.toLowerCase();
@@ -342,10 +396,13 @@
     if (element) element.classList.add("active");
 
     const isLegacy = category.toLowerCase() === "legacy";
-    document.getElementById("checklistTable").hidden = isLegacy;
+    const isCamping = category.toLowerCase() === "camping";
+    document.getElementById("checklistTable").hidden = isLegacy || isCamping;
     document.getElementById("legacyTable").hidden = !isLegacy;
-    document.getElementById("contentFilters").style.display = isLegacy ? "none" : "";
+    document.getElementById("campingTable").hidden = !isCamping;
+    document.getElementById("contentFilters").style.display = isLegacy || isCamping ? "none" : "";
     document.getElementById("legacyFilters").style.display = isLegacy ? "" : "none";
+    document.getElementById("campingFilters").style.display = isCamping ? "" : "none";
     document.querySelector(".content-body").classList.toggle("legacy-view", isLegacy);
   
     applyFilters();
@@ -354,6 +411,17 @@
 function applyFilters() {
   if (currentCategory.toLowerCase() === "legacy") {
     renderLegacyTable();
+    return;
+  }
+  if (currentCategory.toLowerCase() === "camping") {
+    renderCampingTable();
+    return;
+  }
+  if (!mainDataAvailable) {
+    document.getElementById("tableBody").innerHTML = `
+      <tr>
+        <td colspan="4" class="status-msg" style="color: #ff6b6b;">Error loading data...</td>
+      </tr>`;
     return;
   }
 
@@ -499,6 +567,82 @@ function applyFilters() {
     });
   }
 
+  function renderCampingTable() {
+    const tbody = document.getElementById("campingTableBody");
+    const searchValue = document.getElementById("filterSearch").value.trim().toLowerCase();
+    const typeFilter = document.getElementById("filterCampingType").value;
+    const visibleRows = campingRows.filter(row =>
+      (typeFilter === "ALL" || row.type === typeFilter) &&
+      (!searchValue || [row.skill, row.type, row.item, row.description, row.tier, row.reagents]
+        .some(value => value.toLowerCase().includes(searchValue)))
+    );
+    if (campingSortColumn !== -1) {
+      const columnKeys = ["skill", "type", "item"];
+      const key = columnKeys[campingSortColumn];
+      visibleRows.sort((a, b) => campingSortAsc
+        ? a[key].localeCompare(b[key], undefined, { numeric: true, sensitivity: "base" })
+        : b[key].localeCompare(a[key], undefined, { numeric: true, sensitivity: "base" }));
+    }
+    tbody.replaceChildren();
+
+    if (visibleRows.length === 0) {
+      const row = tbody.insertRow();
+      const cell = row.insertCell();
+      cell.colSpan = 3;
+      cell.className = "status-msg";
+      cell.textContent = campingRows.length === 0
+        ? "No Camping data is available."
+        : "No items match the search.";
+      return;
+    }
+
+    visibleRows.forEach(item => {
+      const row = tbody.insertRow();
+      row.insertCell().textContent = item.skill;
+      row.insertCell().textContent = item.type;
+      const itemCell = row.insertCell();
+      const link = document.createElement("a");
+      link.href = "#";
+      link.className = "dungeon-link";
+      link.textContent = item.item;
+      link.addEventListener("click", event => openDetails(item.id, "camping", event));
+      itemCell.appendChild(link);
+    });
+  }
+
+  function populateCampingTypeFilterOptions() {
+    const typeSelect = document.getElementById("filterCampingType");
+    const selectedType = typeSelect.value;
+    const uniqueTypes = [...new Set(campingRows.map(row => row.type.trim()).filter(Boolean))].sort();
+    typeSelect.innerHTML = '<option value="ALL">All Types</option>';
+    uniqueTypes.forEach(type => {
+      const option = document.createElement("option");
+      option.value = type;
+      option.textContent = type;
+      typeSelect.appendChild(option);
+    });
+    if (uniqueTypes.includes(selectedType)) typeSelect.value = selectedType;
+  }
+
+  function sortCampingTable(columnIndex) {
+    if (campingSortColumn === columnIndex) {
+      campingSortAsc = !campingSortAsc;
+    } else {
+      campingSortColumn = columnIndex;
+      campingSortAsc = true;
+    }
+
+    document.querySelectorAll("#campingTable th").forEach((header, index) => {
+      header.classList.remove("sort-asc", "sort-desc");
+      header.setAttribute("aria-sort", "none");
+      if (index === campingSortColumn) {
+        header.classList.add(campingSortAsc ? "sort-asc" : "sort-desc");
+        header.setAttribute("aria-sort", campingSortAsc ? "ascending" : "descending");
+      }
+    });
+    renderCampingTable();
+  }
+
   function checkLevelMatch(itemLevelStr, targetRange) {
     const cleanLevel = itemLevelStr.replace('?', '').trim();
     if (!cleanLevel) return false;
@@ -627,6 +771,33 @@ function applyFilters() {
   
   function openDetails(encodedZoneName, category, event) {
     if (event) event.preventDefault();
+    if (category === "camping") {
+      const item = campingRows.find(row => row.id === encodedZoneName);
+      const panel = document.getElementById("detailsPanel");
+      if (!item) return;
+      const reagentList = item.reagents.split(/\r?\n/)
+        .map(reagent => reagent.trim())
+        .filter(Boolean)
+        .map(reagent => `<li>${escapeHtml(reagent)}</li>`)
+        .join("");
+
+      panel.innerHTML = `
+        <div class="panel-header">
+          <h3>${escapeHtml(item.item)}</h3>
+          <button onclick="closePanel()">&times;</button>
+        </div>
+        <div class="panel-body">
+          <p><strong>Tier:</strong> ${escapeHtml(item.tier)}</p>
+          <p><strong>Description:</strong></p>
+          <p>${escapeHtml(item.description)}</p>
+          <hr>
+          <p><strong>Reagents:</strong></p>
+          <ul class="camping-reagents">${reagentList}</ul>
+        </div>`;
+      showDetailsPanel(panel);
+      return;
+    }
+
     const zoneName = decodeURIComponent(encodedZoneName);
     const panel = document.getElementById("detailsPanel");
     let backdrop = document.getElementById("modalBackdrop");
@@ -678,8 +849,13 @@ function applyFilters() {
         </div>`;
     }
     
+    showDetailsPanel(panel);
+  }
+
+  function showDetailsPanel(panel) {
+    let backdrop = document.getElementById("modalBackdrop");
     panel.classList.add("active");
-  
+
     if (window.innerWidth <= 960) {
       if (!backdrop) {
         backdrop = document.createElement("div");

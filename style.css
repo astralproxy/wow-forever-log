@@ -114,6 +114,12 @@
   white-space: pre-line; /* Preserves newlines from Google Sheets data */
 }
 
+.camping-reagents {
+  margin: 0 0 10px;
+  padding-left: 1.25rem;
+  line-height: 1.5;
+}
+
 /* horizontal divider */
 .panel-body hr {
   border: 0;
@@ -407,6 +413,31 @@ table {
 
 #legacyTable .legacy-tooltip {
   display: none;
+}
+
+#campingTable {
+  width: 100%;
+  table-layout: fixed;
+}
+
+#campingTable th,
+#campingTable td {
+  padding-left: 8px;
+  padding-right: 8px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+#campingTable th:nth-child(1) {
+  width: 20%;
+}
+
+#campingTable th:nth-child(2) {
+  width: 32%;
+}
+
+#campingTable th:nth-child(3) {
+  width: 48%;
 }
 
 th, td {
