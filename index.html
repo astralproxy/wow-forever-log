@@ -159,6 +159,7 @@
   const ZONE_CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=Zones`;
   const LEGACY_CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=Legacy`;
   const CAMPING_CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=Camping`;
+  const WOWHEAD_URL = "https://www.wowhead.com/forever";
 
   let dungeonMap = new Map(); // Store dungeon lookup data keyed by name
   let raidMap = new Map(); // Store raid lookup data keyed by name
@@ -207,7 +208,7 @@
   function getWowheadItemUrl(itemName) {
     const cacheKey = itemName.trim().toLowerCase();
     if (!wowheadItemUrlCache.has(cacheKey)) {
-      const lookupUrl = `https://www.wowhead.com/item=${encodeURIComponent(itemName)}?xml`;
+      const lookupUrl = `${WOWHEAD_URL}/item=${encodeURIComponent(itemName)}?xml`;
       wowheadItemUrlCache.set(cacheKey, fetch(lookupUrl)
         .then(response => {
           if (!response.ok) throw new Error("Failed to fetch Wowhead item data");
@@ -220,8 +221,8 @@
           if (!/^\d+$/.test(itemId || "") || !canonicalUrl) return null;
 
           const url = new URL(canonicalUrl);
-          return url.origin === "https://www.wowhead.com" && url.pathname.startsWith(`/item=${itemId}/`)
-            ? url.href
+          return url.origin === new URL(WOWHEAD_URL).origin && url.pathname.startsWith(`/item=${itemId}/`)
+            ? `${WOWHEAD_URL}${url.pathname}${url.search}${url.hash}`
             : null;
         })
         .catch(error => {
@@ -836,14 +837,15 @@ function applyFilters() {
         link.addEventListener("click", event => {
           if (link.getAttribute("aria-disabled") === "true") event.preventDefault();
         });
-        getWowheadItemUrl(link.dataset.itemName).then(url => {
+        const itemName = link.dataset.itemName.replace(/\s*\(\d+\)/g, "").trim();
+        getWowheadItemUrl(itemName).then(url => {
           if (!link.isConnected) return;
           if (url) {
             link.href = url;
             link.title = "View item on Wowhead";
             link.removeAttribute("aria-disabled");
           } else {
-            link.href = `https://www.wowhead.com/search?q=${encodeURIComponent(link.dataset.itemName)}#items`;
+            link.href = `${WOWHEAD_URL}/search?q=${encodeURIComponent(itemName)}#items`;
             link.title = "Could not resolve item on Wowhead";
             link.removeAttribute("aria-disabled");
           }
