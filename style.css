@@ -197,6 +197,10 @@ h1 {
   font-size: 1.6rem;
 }
 
+.mobile-navigation {
+  display: none;
+}
+
 /* Pushes text to the far right */
 .header-note {
   margin-left: auto;
@@ -651,8 +655,60 @@ input[type="checkbox"] {
   
   /* Header adjustments */
   .header-container {
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 8px;
+  }
+
+  .mobile-navigation {
+    display: block;
+    position: relative;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+
+  .mobile-navigation summary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    color: var(--text);
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .mobile-navigation summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .menu-icon {
+    display: grid;
+    gap: 4px;
+    width: 16px;
+  }
+
+  .menu-icon span {
+    height: 2px;
+    background: currentColor;
+  }
+
+  .mobile-menu-list {
+    display: block;
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    z-index: 20;
+    min-width: 150px;
+    padding: 6px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+  }
+
+  .mobile-menu-list li {
+    margin-bottom: 2px;
   }
   
   .header-note {
@@ -676,26 +732,9 @@ input[type="checkbox"] {
     gap: 16px;
   }
   
-  /* Transform sidebar into a horizontal top bar */
+  /* Replace the sidebar with the header menu on narrow screens */
   .wiki-sidebar {
-    width: 100%;
-    min-width: 0;
-    height: auto;
-    position: static;
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 12px;
-  }
-  
-  .sidebar-menu {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  
-  .sidebar-menu li {
-    margin-bottom: 0;
+    display: none;
   }
   
   /* Content area full width */

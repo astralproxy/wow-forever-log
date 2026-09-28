@@ -13,6 +13,20 @@
   <div class="header-container">
     <img src="logo.png" alt="Logo" class="header-logo">
     <h1>Forever Log</h1>
+    <details class="mobile-navigation">
+      <summary aria-label="Open navigation menu">
+        <span class="menu-icon" aria-hidden="true"><span></span><span></span><span></span></span>
+        <span>Menu</span>
+      </summary>
+      <ul class="sidebar-menu mobile-menu-list">
+        <li><a href="#" class="sidebar-link active" onclick="filterByCategory('ALL', this, event)">ALL</a></li>
+        <li><a href="#" class="sidebar-link" onclick="filterByCategory('Dungeons', this, event)">Dungeons</a></li>
+        <li><a href="#" class="sidebar-link" onclick="filterByCategory('Raids', this, event)">Raids</a></li>
+        <li><a href="#" class="sidebar-link" onclick="filterByCategory('Zones', this, event)">Zones</a></li>
+        <li><a href="#" class="sidebar-link" onclick="filterByCategory('Camping', this, event)">Camping</a></li>
+        <li><a href="#" class="sidebar-link" onclick="filterByCategory('Legacy', this, event)">Legacy</a></li>
+      </ul>
+    </details>
     <!--<span class="header-note">✅ items to mark them as explored.</span>-->
   </div>
   
@@ -432,9 +446,11 @@
     }
     window.history.replaceState(null, "", url);
   
-    // Update active state class on sidebar links
-    document.querySelectorAll(".sidebar-link").forEach(link => link.classList.remove("active"));
-    if (element) element.classList.add("active");
+    // Keep the desktop and mobile navigation states in sync.
+    document.querySelectorAll(".sidebar-link").forEach(link => {
+      link.classList.toggle("active", link.textContent.trim().toLowerCase() === category.toLowerCase());
+    });
+    document.querySelector(".mobile-navigation").open = false;
 
     const isLegacy = category.toLowerCase() === "legacy";
     const isCamping = category.toLowerCase() === "camping";
