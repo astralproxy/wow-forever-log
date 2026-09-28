@@ -160,6 +160,7 @@
   const LEGACY_CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=Legacy`;
   const CAMPING_CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=Camping`;
   const WOWHEAD_URL = "https://www.wowhead.com/forever";
+  const WOWHEAD_ITEMS_CSV_URL = "wowhead-items.csv";
 
   let dungeonMap = new Map(); // Store dungeon lookup data keyed by name
   let raidMap = new Map(); // Store raid lookup data keyed by name
@@ -170,6 +171,7 @@
   let campingSortColumn = -1;
   let campingSortAsc = true;
   const wowheadItemUrlCache = new Map();
+  let wowheadItemLookupPromise;
 
   let rawTableData = [];
   let filteredData = [];
@@ -205,32 +207,40 @@
     }
   }
 
-  function getWowheadItemUrl(itemName) {
-    const cacheKey = itemName.trim().toLowerCase();
-    if (!wowheadItemUrlCache.has(cacheKey)) {
-      const lookupUrl = `${WOWHEAD_URL}/item=${encodeURIComponent(itemName)}?xml`;
-      wowheadItemUrlCache.set(cacheKey, fetch(lookupUrl)
+  function normalizeWowheadItemName(itemName) {
+    return String(itemName || "")
+      .replace(/\s*\(\d+\)/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  async function loadWowheadItemLookup() {
+    if (!wowheadItemLookupPromise) {
+      wowheadItemLookupPromise = fetch(WOWHEAD_ITEMS_CSV_URL)
         .then(response => {
-          if (!response.ok) throw new Error("Failed to fetch Wowhead item data");
+          if (!response.ok) throw new Error("Failed to fetch Wowhead item lookup CSV");
           return response.text();
         })
-        .then(xmlText => {
-          const item = new DOMParser().parseFromString(xmlText, "application/xml").querySelector("item");
-          const itemId = item?.getAttribute("id");
-          const canonicalUrl = item?.querySelector("link")?.textContent.trim();
-          if (!/^\d+$/.test(itemId || "") || !canonicalUrl) return null;
-
-          const url = new URL(canonicalUrl);
-          return url.origin === new URL(WOWHEAD_URL).origin && url.pathname.startsWith(`/item=${itemId}/`)
-            ? `${WOWHEAD_URL}${url.pathname}${url.search}${url.hash}`
-            : null;
+        .then(csvText => {
+          const wowheadBase = new URL(WOWHEAD_URL);
+          parseCSV(csvText).slice(1).forEach(([itemId, itemName, itemUrl]) => {
+            if (!/^\d+$/.test(itemId || "") || !itemName || !itemUrl) return;
+            const url = new URL(itemUrl);
+            if (url.origin === wowheadBase.origin && url.pathname.startsWith(`${wowheadBase.pathname}/item=${itemId}/`)) {
+              wowheadItemUrlCache.set(normalizeWowheadItemName(itemName).toLowerCase(), url.href);
+            }
+          });
         })
         .catch(error => {
-          console.warn(`Could not resolve Wowhead item: ${itemName}`, error);
-          return null;
-        }));
+          console.error("Could not load Wowhead item lookup CSV", error);
+        });
     }
-    return wowheadItemUrlCache.get(cacheKey);
+    await wowheadItemLookupPromise;
+  }
+
+  async function getWowheadItemUrl(itemName) {
+    await loadWowheadItemLookup();
+    return wowheadItemUrlCache.get(normalizeWowheadItemName(itemName).toLowerCase()) || null;
   }
 
   async function loadSheetData() {
@@ -837,7 +847,7 @@ function applyFilters() {
         link.addEventListener("click", event => {
           if (link.getAttribute("aria-disabled") === "true") event.preventDefault();
         });
-        const itemName = link.dataset.itemName.replace(/\s*\(\d+\)/g, "").trim();
+        const itemName = normalizeWowheadItemName(link.dataset.itemName);
         getWowheadItemUrl(itemName).then(url => {
           if (!link.isConnected) return;
           if (url) {

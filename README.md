@@ -210,3 +210,13 @@ Each detail tab is parsed as CSV with one entry per row. The app reads the row i
 ## Summary
 
 This project is a practical, low-overhead checklist app for tracking WoW: Forever content. The code is simple, readable, and effective for a small static site, with the main strengths being persistence, spreadsheet-driven data, and clean user interaction flows.
+
+## Updating Wowhead Reagent Links
+
+The site reads `wowhead-items.csv` for resolved reagent IDs and canonical item URLs. After changing the Camping sheet, regenerate that lookup table from the repository root with:
+
+```sh
+python scripts/update_wowhead_items.py
+```
+
+The generator uses only Python's standard library. It writes successful lookups to `wowhead-items.csv` and reports any reagent names it could not resolve.
