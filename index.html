@@ -103,7 +103,8 @@
             <tr>
               <th class="col-cb no-sort"></th>
               <th class="col-level" onclick="sortTable(1)">Level</th>
-              <th class="col-zone" onclick="sortTable(2)">Zone/Location</th>
+              <th class="col-type" onclick="sortTable(2)">Type</th>
+              <th class="col-zone" onclick="sortTable(2)">Location</th>
               <th class="col-progress">Progress</th>
             </tr>
           </thead>
@@ -813,7 +814,11 @@ function applyFilters() {
 
       const encodedZoneName = encodeURIComponent(item.zone).replace(/'/g, "%27");
       const zoneContent = `<a href="#" class="dungeon-link" onclick="openDetails('${encodedZoneName}', '${itemCategory}', event)">${escapeHtml(item.zone)}</a>`;
-      const typePill = `<span class="type-tag ${tagClass}">${escapeHtml(item.type)}</span>`;
+      
+      // Only render the pill in its own column when on the ALL tab
+      const typeCellHtml = currentCategory === "ALL" 
+        ? `<span class="type-tag ${tagClass}">${escapeHtml(item.type)}</span>` 
+        : "";
 
       // Calculate Quests/Bosses Progress
       const progressHtml = getItemProgress(detailData, entityId);
@@ -823,7 +828,8 @@ function applyFilters() {
           <input type="checkbox" ${isChecked ? "checked" : ""} onchange="toggleCheck('${item.id}', this)">
         </td>
         <td ${levelClass} ${levelTooltip}>${escapeHtml(item.level)}</td>
-        <td ${zoneClass} ${zoneTooltip}>${zoneContent}<br>${typePill}</td>
+        <td class="col-type">${typeCellHtml}</td>
+        <td class="col-zone" ${zoneTooltip}>${zoneContent}</td>
         <td class="col-progress">${progressHtml}</td>
       `;
       
@@ -1050,7 +1056,8 @@ function applyFilters() {
   function getColumnValue(item, index) {
     switch(index) {
       case 1: return item.level;
-      case 2: return item.zone;
+      case 2: return item.type;
+      case 3: return item.zone;
       default: return "";
     }
   }

@@ -390,18 +390,40 @@ table {
   overflow-wrap: anywhere;
 }
 
+/* --- Checklist Table Column Widths (5-Column Layout) --- */
 #checklistTable .col-cb {
-  width: 8%;
-  padding-left: 2px;
-  padding-right: 2px;
+  width: 44px !important;
+  min-width: 44px !important;
+  max-width: 44px !important;
+  padding-left: 4px !important;
+  padding-right: 4px !important;
+  text-align: center;
+  box-sizing: border-box;
 }
 
 #checklistTable .col-level {
-  width: 16%;
+  width: 110px !important;
+  min-width: 110px !important;
+  max-width: 110px !important;
+  white-space: nowrap !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
+}
+
+#checklistTable .col-type {
+  width: 84px !important;
+  min-width: 84px !important;
+  max-width: 84px !important;
+  text-align: left !important;
+  box-sizing: border-box;
 }
 
 #checklistTable .col-zone {
-  width: 46%;
+  width: 240px !important;
+  min-width: 240px !important;
+  max-width: 240px !important;
+  box-sizing: border-box;
 }
 
 #checklistTable .col-progress {
@@ -419,20 +441,24 @@ table {
   overflow-wrap: anywhere;
 }
 
+/* --- Legacy Table Checkbox Column Width --- */
 #legacyTable th:first-child,
 #legacyTable td:first-child {
-  width: 44px;
+  width: 44px !important;
+  min-width: 44px !important;
+  max-width: 44px !important;
+  text-align: center;
+}
+
+#legacyTable .legacy-type {
+  width: 16%;
+  padding-left: 8px;
+  padding-right: 8px;
+  white-space: nowrap;
 }
 
 #legacyTable .legacy-description {
   width: auto;
-}
-
-#legacyTable .legacy-type {
-  width: 12ch;
-  padding-left: 8px;
-  padding-right: 8px;
-  white-space: nowrap;
 }
 
 #legacyTable .legacy-tooltip {
@@ -452,24 +478,28 @@ table {
   overflow-wrap: anywhere;
 }
 
+/* --- Camping Table Column Widths --- */
 #campingTable th:nth-child(1),
 #campingTable td:nth-child(1) {
-  width: 8%;
-  padding-left: 2px;
-  padding-right: 2px;
+  width: 44px !important;
+  min-width: 44px !important;
+  max-width: 44px !important;
   text-align: center;
 }
 
-#campingTable th:nth-child(2) {
-  width: 18%;
+#campingTable th:nth-child(2),
+#campingTable td:nth-child(2) {
+  width: 130px !important; /* Skill column */
 }
 
-#campingTable th:nth-child(3) {
-  width: 29%;
+#campingTable th:nth-child(3),
+#campingTable td:nth-child(3) {
+  width: 130px !important; /* Type column */
 }
 
-#campingTable th:nth-child(4) {
-  width: 45%;
+#campingTable th:nth-child(4),
+#campingTable td:nth-child(4) {
+  width: auto !important; /* Item column */
 }
 
 th, td {
@@ -481,24 +511,6 @@ th, td {
   white-space: nowrap; /* Prevents text wrapping so columns fit content cleanly */
 }
 
-/* REPLACE fixed column width classes with auto-sizing rules: */
-/* Update .col-level to enforce max-width */
-.col-cb { 
-  width: 1px; 
-  text-align: center; 
-} 
-
-.col-level { 
-  max-width: 100px; 
-  width: 100px;
-  overflow: hidden; 
-  text-overflow: ellipsis; 
-}
-
-.col-zone, .col-activity { 
-  width: auto; 
-}
-
 /* Type Pill Tags */
 .type-tag {
   display: inline-block;
@@ -506,7 +518,7 @@ th, td {
   font-weight: 600;
   padding: 2px 6px;
   border-radius: 4px;
-  margin-left: 8px;
+  margin-left: 0;
   vertical-align: middle;
   text-transform: capitalize;
 }
@@ -527,6 +539,26 @@ th, td {
   background-color: rgba(255, 152, 0, 0.2);
   color: #FFC24C; /* Orange */
   border: 1px solid rgba(255, 152, 0, 0.4);
+}
+
+/* Inline Zone Cell Layout with Fixed Pill Column */
+.zone-cell-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.zone-pill-slot {
+  flex: 0 0 75px; /* Adjust this width to fit your longest pill title comfortably */
+  text-align: left;
+}
+
+.zone-name-slot {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 th {
@@ -623,8 +655,8 @@ input[type="checkbox"] {
   opacity: 0.6;
 }
 
-/* MOBILE (narrow screen) OVERRIDES */
-@media (max-width: 960px) {
+/*#region MOBILE (narrow screen) OVERRIDES */
+@media (max-width: 1200px) {
   body.modal-open {
     overflow: hidden;
   }
@@ -831,17 +863,13 @@ input[type="checkbox"] {
   .col-activity {
     white-space: normal;
   }
-
-  /* Optional: Set explicit widths for remaining columns so they distribute nicely 
-  .col-cb {
-    width: 40px;
-  }
-  
-  .col-level {
-    width: 20%;
-  }
-  
-  .col-progress {
-    width: 30%;
-  }*/
 }
+
+/* Hide Progress column on screens narrower than 520px */
+@media (max-width: 610px) {
+  #checklistTable th:nth-child(5),
+  #checklistTable td.col-progress {
+    display: none !important;
+  }
+}
+/*#endregion MOBILE (narrow screen) OVERRIDES */
