@@ -13,6 +13,20 @@
   <div class="header-container">
     <img src="logo.png" alt="Logo" class="header-logo">
     <h1>Forever Log</h1>
+    <details class="mobile-navigation">
+      <summary aria-label="Open navigation menu">
+        <span class="menu-icon" aria-hidden="true"><span></span><span></span><span></span></span>
+        <span>Menu</span>
+      </summary>
+      <ul class="sidebar-menu mobile-menu-list">
+        <li><a href="#" class="sidebar-link active" onclick="filterByCategory('ALL', this, event)">ALL</a></li>
+        <li><a href="#" class="sidebar-link" onclick="filterByCategory('Dungeons', this, event)">Dungeons</a></li>
+        <li><a href="#" class="sidebar-link" onclick="filterByCategory('Raids', this, event)">Raids</a></li>
+        <li><a href="#" class="sidebar-link" onclick="filterByCategory('Zones', this, event)">Zones</a></li>
+        <li><a href="#" class="sidebar-link" onclick="filterByCategory('Camping', this, event)">Camping</a></li>
+        <li><a href="#" class="sidebar-link" onclick="filterByCategory('Legacy', this, event)">Legacy</a></li>
+      </ul>
+    </details>
     <!--<span class="header-note">✅ items to mark them as explored.</span>-->
   </div>
   
@@ -21,10 +35,12 @@
     <aside class="wiki-sidebar">
       <div class="sidebar-title">Navigation</div>
       <ul class="sidebar-menu">
-        <li><a href="#" class="sidebar-link active" onclick="filterByCategory('ALL', this)">All Content</a></li>
+        <li><a href="#" class="sidebar-link active" onclick="filterByCategory('ALL', this)">ALL</a></li>
         <li><a href="#" class="sidebar-link" onclick="filterByCategory('Dungeons', this)">Dungeons</a></li>
         <li><a href="#" class="sidebar-link" onclick="filterByCategory('Raids', this)">Raids</a></li>
         <li><a href="#" class="sidebar-link" onclick="filterByCategory('Zones', this)">Zones</a></li>
+        <li><a href="#" class="sidebar-link" onclick="filterByCategory('Camping', this)">Camping</a></li>
+        <li><a href="#" class="sidebar-link" onclick="filterByCategory('Legacy', this)">Legacy</a></li>
       </ul>
     </aside>
 
@@ -33,7 +49,7 @@
 
       <!-- FILTERS at top of page -->
       <div class="filter-bar">
-        <div class="filter-group">
+        <div class="filter-group" id="contentFilters">
           <label for="toggleProgress">
             <input type="checkbox" id="toggleProgress" checked onchange="toggleProgressColumn()"> Show Progress
           </label>
@@ -53,6 +69,24 @@
           <select id="filterType" onchange="applyFilters()">
             <option value="ALL">All Types</option>
           </select>-->
+        </div>
+
+        <div class="filter-group" id="legacyFilters" style="display: none;">
+          <label for="filterLegacyType">Type:</label>
+          <select id="filterLegacyType" onchange="applyFilters()">
+            <option value="ALL">All Types</option>
+            <option value="class">Class</option>
+            <option value="profession">Profession</option>
+            <option value="adventure">Adventure</option>
+            <option value="pvp">PvP</option>
+          </select>
+        </div>
+
+        <div class="filter-group" id="campingFilters" style="display: none;">
+          <label for="filterCampingType">Type:</label>
+          <select id="filterCampingType" onchange="applyFilters()">
+            <option value="ALL">All Types</option>
+          </select>
         </div>
 
         <div class="filter-group filter-search">
@@ -79,11 +113,33 @@
             </tr>
           </tbody>
         </table>
+        <table id="legacyTable" hidden>
+          <tbody>
+            <tr>
+              <td class="status-msg">Loading Legacy achievements...</td>
+            </tr>
+          </tbody>
+        </table>
+        <table id="campingTable" hidden>
+          <thead>
+            <tr>
+              <th class="col-cb no-sort"></th>
+              <th onclick="sortCampingTable(0)" aria-sort="none">Skill</th>
+              <th onclick="sortCampingTable(1)" aria-sort="none">Type</th>
+              <th onclick="sortCampingTable(2)" aria-sort="none">Item</th>
+            </tr>
+          </thead>
+          <tbody id="campingTableBody">
+            <tr>
+              <td colspan="4" class="status-msg">Loading Camping data...</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
     <!-- Side Details Panel -->
     <aside id="detailsPanel" class="details-panel">
-      <div class="panel-placeholder">Select a dungeon to view details.</div>
+      <div class="panel-placeholder">Click a list item to view details.</div>
     </aside>
   </div>
 </main>
@@ -115,18 +171,94 @@
   const DUNGEON_CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=Dungeons`;
   const RAID_CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=Raids`;
   const ZONE_CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=Zones`;
+  const LEGACY_CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=Legacy`;
+  const CAMPING_CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=Camping`;
+  const WOWHEAD_URL = "https://www.wowhead.com/forever";
+  const WOWHEAD_ITEMS_CSV_URL = "wowhead-items.csv";
 
   let dungeonMap = new Map(); // Store dungeon lookup data keyed by name
   let raidMap = new Map(); // Store raid lookup data keyed by name
   let zoneMap = new Map(); // Store zone lookup data keyed by name
+  let legacyColumns = [];
+  let legacyRows = [];
+  let campingRows = [];
+  let campingSortColumn = -1;
+  let campingSortAsc = true;
+  const wowheadItemUrlCache = new Map();
+  let wowheadItemLookupPromise;
 
   let rawTableData = [];
   let filteredData = [];
+  let mainDataAvailable = true;
   let currentSortColumn = -1;
   let currentSortAsc = true;
   let currentCategory = "ALL";
 
+  async function loadCampingData() {
+    try {
+      const response = await fetch(CAMPING_CSV_URL);
+      if (!response.ok) throw new Error("Failed to fetch Camping data");
+
+      const parsedRows = parseCSV(await response.text());
+      campingRows = parsedRows.slice(1)
+        .filter(row => row.slice(0, 6).some(value => (value || "").trim() !== ""))
+        .map((row, index) => ({
+          skill: row[0] || "",
+          type: row[1] || "",
+          item: row[2] || "",
+          description: row[3] || "",
+          tier: row[4] || "",
+          reagents: row[5] || "",
+          id: encodeURIComponent(`${row[0] || ""}|${row[1] || ""}|${row[2] || ""}|${index}`)
+        }));
+
+      populateCampingTypeFilterOptions();
+      if (currentCategory.toLowerCase() === "camping") renderCampingTable();
+    } catch (error) {
+      console.error(error);
+      campingRows = [];
+      if (currentCategory.toLowerCase() === "camping") renderCampingTable();
+    }
+  }
+
+  function normalizeWowheadItemName(itemName) {
+    return String(itemName || "")
+      .replace(/\s*\(\d+\)/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  async function loadWowheadItemLookup() {
+    if (!wowheadItemLookupPromise) {
+      wowheadItemLookupPromise = fetch(WOWHEAD_ITEMS_CSV_URL)
+        .then(response => {
+          if (!response.ok) throw new Error("Failed to fetch Wowhead item lookup CSV");
+          return response.text();
+        })
+        .then(csvText => {
+          const wowheadBase = new URL(WOWHEAD_URL);
+          parseCSV(csvText).slice(1).forEach(([itemId, itemName, itemUrl]) => {
+            if (!/^\d+$/.test(itemId || "") || !itemName || !itemUrl) return;
+            const url = new URL(itemUrl);
+            if (url.origin === wowheadBase.origin && url.pathname.startsWith(`${wowheadBase.pathname}/item=${itemId}/`)) {
+              wowheadItemUrlCache.set(normalizeWowheadItemName(itemName).toLowerCase(), url.href);
+            }
+          });
+        })
+        .catch(error => {
+          console.error("Could not load Wowhead item lookup CSV", error);
+        });
+    }
+    await wowheadItemLookupPromise;
+  }
+
+  async function getWowheadItemUrl(itemName) {
+    await loadWowheadItemLookup();
+    return wowheadItemUrlCache.get(normalizeWowheadItemName(itemName).toLowerCase()) || null;
+  }
+
   async function loadSheetData() {
+    loadCampingData();
     const randomMsg = LOADING_MESSAGES[Math.floor(Math.random() * LOADING_MESSAGES.length)];
     const tbody = document.getElementById("tableBody");
     if (tbody) {
@@ -138,16 +270,16 @@
     
     try {
       // 1. Fetch main data, Dungeon, Raid, and Zone CSV tabs concurrently
-      const [mainRes, dungeonRes, raidRes, zoneRes] = await Promise.all([
+      const [mainRes, dungeonRes, raidRes, zoneRes, legacyRes] = await Promise.all([
         fetch(API_URL),
         fetch(DUNGEON_CSV_URL),
         fetch(RAID_CSV_URL),
-        fetch(ZONE_CSV_URL)
+        fetch(ZONE_CSV_URL),
+        fetch(LEGACY_CSV_URL).catch(() => null)
       ]);
   
-      if (!mainRes.ok) throw new Error("Failed to fetch data");
-      
-      const data = await mainRes.json();
+      mainDataAvailable = mainRes.ok;
+      const data = mainRes.ok ? await mainRes.json() : [];
   
       // Parse Dungeon CSV tab
       if (dungeonRes.ok) {
@@ -205,7 +337,20 @@
           }
         });
       }
-  
+
+      if (legacyRes?.ok) {
+        const parsedRows = parseCSV(await legacyRes.text());
+        legacyColumns = (parsedRows[0] || [])
+          .map((name, index) => ({ name, index }))
+          .filter(column => column.name.trim() !== "");
+        legacyRows = parsedRows.slice(1)
+          .filter(row => legacyColumns.some(column => (row[column.index] || "").trim() !== ""))
+          .map(row => ({
+            values: legacyColumns.map(column => row[column.index] || ""),
+            id: encodeURIComponent(legacyColumns.map(column => row[column.index] || "").join("|").toLowerCase())
+          }));
+      }
+
       rawTableData = data.map(item => ({
         id: (item.zone || "").toLowerCase().replace(/[^a-z0-9]/g, "-"),
         level: item.level || "",
@@ -218,7 +363,14 @@
   
       currentSortColumn = 1;
       currentSortAsc = true;
-      applyFilters();
+      const requestedCategory = new URLSearchParams(window.location.search).get("nav");
+      const categories = ["ALL", "Dungeons", "Raids", "Zones", "Camping", "Legacy"];
+      currentCategory = categories.find(category => category.toLowerCase() === requestedCategory?.toLowerCase()) || "ALL";
+      const activeLink = [...document.querySelectorAll(".sidebar-link")].find(link => {
+        const label = currentCategory === "ALL" ? "all content" : currentCategory.toLowerCase();
+        return link.textContent.trim().toLowerCase() === label;
+      });
+      filterByCategory(currentCategory, activeLink);
     } catch (err) {
       console.error(err);
       document.getElementById("tableBody").innerHTML = `
@@ -285,20 +437,58 @@
   function filterByCategory(category, element, event) {
     if (event) event.preventDefault();
     currentCategory = category;
+
+    const url = new URL(window.location.href);
+    if (category === "ALL") {
+      url.searchParams.delete("nav");
+    } else {
+      url.searchParams.set("nav", category);
+    }
+    window.history.replaceState(null, "", url);
   
-    // Update active state class on sidebar links
-    document.querySelectorAll(".sidebar-link").forEach(link => link.classList.remove("active"));
-    if (element) element.classList.add("active");
+    // Keep the desktop and mobile navigation states in sync.
+    document.querySelectorAll(".sidebar-link").forEach(link => {
+      link.classList.toggle("active", link.textContent.trim().toLowerCase() === category.toLowerCase());
+    });
+    document.querySelector(".mobile-navigation").open = false;
+
+    const isLegacy = category.toLowerCase() === "legacy";
+    const isCamping = category.toLowerCase() === "camping";
+    document.getElementById("checklistTable").hidden = isLegacy || isCamping;
+    document.getElementById("legacyTable").hidden = !isLegacy;
+    document.getElementById("campingTable").hidden = !isCamping;
+    document.getElementById("contentFilters").style.display = isLegacy || isCamping ? "none" : "";
+    document.getElementById("legacyFilters").style.display = isLegacy ? "" : "none";
+    document.getElementById("campingFilters").style.display = isCamping ? "" : "none";
+    document.querySelector(".content-body").classList.toggle("legacy-view", isLegacy);
   
     applyFilters();
   }
 
 function applyFilters() {
+  if (currentCategory.toLowerCase() === "legacy") {
+    renderLegacyTable();
+    return;
+  }
+  if (currentCategory.toLowerCase() === "camping") {
+    renderCampingTable();
+    return;
+  }
+  if (!mainDataAvailable) {
+    document.getElementById("tableBody").innerHTML = `
+      <tr>
+        <td colspan="4" class="status-msg" style="color: #ff6b6b;">Error loading data...</td>
+      </tr>`;
+    return;
+  }
+
   const levelFilter = document.getElementById("filterLevel")?.value || "ALL";
   const typeFilter = document.getElementById("filterType")?.value || "ALL";
   const searchVal = document.getElementById("filterSearch")?.value.trim() || "";
 
   filteredData = rawTableData.filter(item => {
+    if (item.type.toLowerCase().includes("legacy")) return false;
+
     let matchesLevel = true;
     let matchesType = true;
     let matchesCategory = true;
@@ -339,6 +529,184 @@ function applyFilters() {
 
   renderTable();
 }
+
+  function renderLegacyTable() {
+    const table = document.getElementById("legacyTable");
+    const searchValue = document.getElementById("filterSearch").value.trim().toLowerCase();
+    const legacyTypeFilter = document.getElementById("filterLegacyType")?.value.trim().toLowerCase() || "all";
+    const visibleColumns = legacyColumns
+      .map((column, valueIndex) => ({ ...column, valueIndex }))
+      .filter(column => column.name.trim().toLowerCase() !== "reward");
+    const descriptionIndex = legacyColumns.findIndex(column => column.name.trim().toLowerCase() === "description");
+    table.replaceChildren();
+    const header = table.createTHead();
+    const headerRow = header.insertRow();
+    const checkboxHeader = document.createElement("th");
+    checkboxHeader.className = "no-sort";
+    headerRow.appendChild(checkboxHeader);
+
+    visibleColumns.forEach(column => {
+      const cell = document.createElement("th");
+      cell.textContent = column.name;
+      if (column.name.trim().toLowerCase() === "description") {
+        cell.classList.add("legacy-description");
+      } else if (column.name.trim().toLowerCase() === "challenge") {
+        cell.classList.add("legacy-challenge");
+      } else if (column.name.trim().toLowerCase() === "type") {
+        cell.classList.add("legacy-type");
+      }
+      headerRow.appendChild(cell);
+    });
+
+    const tbody = table.createTBody();
+    const visibleRows = legacyRows.filter(row => {
+      const rowText = row.values.join(" ").toLowerCase();
+      const matchesSearch = !searchValue || rowText.includes(searchValue);
+      if (!matchesSearch) return false;
+
+      if (legacyTypeFilter !== "all") {
+        // Find the "Type" column dynamically if present
+        const typeColIndex = legacyColumns.findIndex(c => c.name.toLowerCase() === "type");
+        if (typeColIndex !== -1) {
+          const rowType = (row.values[typeColIndex] || "").trim().toLowerCase();
+          if (rowType !== legacyTypeFilter) return false;
+        }
+      }
+      return true;
+    });
+
+    if (visibleRows.length === 0) {
+      const row = tbody.insertRow();
+      const cell = row.insertCell();
+      cell.colSpan = visibleColumns.length + 1;
+      cell.className = "status-msg";
+      cell.textContent = legacyRows.length === 0
+        ? "No Legacy achievements are available."
+        : "No achievements match the search.";
+      return;
+    }
+
+    visibleRows.forEach(legacyRow => {
+      const row = tbody.insertRow();
+      const checkboxCell = row.insertCell();
+      checkboxCell.className = "col-cb";
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.checked = localStorage.getItem(`wow_legacy_${legacyRow.id}`) === "true";
+      if (checkbox.checked) row.classList.add("completed");
+      checkbox.addEventListener("change", () => {
+        localStorage.setItem(`wow_legacy_${legacyRow.id}`, checkbox.checked);
+        row.classList.toggle("completed", checkbox.checked);
+      });
+      checkboxCell.appendChild(checkbox);
+
+      visibleColumns.forEach(column => {
+        const cell = row.insertCell();
+        const value = legacyRow.values[column.valueIndex];
+        cell.textContent = value;
+        if (column.name.trim().toLowerCase() === "description") {
+          cell.classList.add("legacy-description");
+        } else if (column.name.trim().toLowerCase() === "challenge") {
+          cell.classList.add("legacy-challenge");
+          const description = legacyRow.values[descriptionIndex] || "";
+          if (description) {
+            cell.classList.add("has-note");
+            cell.setAttribute("data-description", description);
+            const tooltip = document.createElement("span");
+            tooltip.className = "legacy-tooltip";
+            tooltip.textContent = description;
+            cell.appendChild(tooltip);
+          }
+        } else if (column.name.trim().toLowerCase() === "type") {
+          cell.classList.add("legacy-type");
+        }
+      });
+    });
+  }
+
+  function renderCampingTable() {
+    const tbody = document.getElementById("campingTableBody");
+    const searchValue = document.getElementById("filterSearch").value.trim().toLowerCase();
+    const typeFilter = document.getElementById("filterCampingType").value;
+    const visibleRows = campingRows.filter(row =>
+      (typeFilter === "ALL" || row.type === typeFilter) &&
+      (!searchValue || [row.skill, row.type, row.item, row.description, row.tier, row.reagents]
+        .some(value => value.toLowerCase().includes(searchValue)))
+    );
+    if (campingSortColumn !== -1) {
+      const columnKeys = ["skill", "type", "item"];
+      const key = columnKeys[campingSortColumn];
+      visibleRows.sort((a, b) => campingSortAsc
+        ? a[key].localeCompare(b[key], undefined, { numeric: true, sensitivity: "base" })
+        : b[key].localeCompare(a[key], undefined, { numeric: true, sensitivity: "base" }));
+    }
+    tbody.replaceChildren();
+
+    if (visibleRows.length === 0) {
+      const row = tbody.insertRow();
+      const cell = row.insertCell();
+      cell.colSpan = 4;
+      cell.className = "status-msg";
+      cell.textContent = campingRows.length === 0
+        ? "No Camping data is available."
+        : "No items match the search.";
+      return;
+    }
+
+    visibleRows.forEach(item => {
+      const row = tbody.insertRow();
+      const checkboxCell = row.insertCell();
+      checkboxCell.className = "col-cb";
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.checked = localStorage.getItem(`wow_chk_camping_${item.id}`) === "true";
+      if (checkbox.checked) row.classList.add("completed");
+      checkbox.addEventListener("change", () => toggleCheck(`camping_${item.id}`, checkbox));
+      checkboxCell.appendChild(checkbox);
+      row.insertCell().textContent = item.skill;
+      row.insertCell().textContent = item.type;
+      const itemCell = row.insertCell();
+      const link = document.createElement("a");
+      link.href = "#";
+      link.className = "dungeon-link";
+      link.textContent = item.item;
+      link.addEventListener("click", event => openDetails(item.id, "camping", event));
+      itemCell.appendChild(link);
+    });
+  }
+
+  function populateCampingTypeFilterOptions() {
+    const typeSelect = document.getElementById("filterCampingType");
+    const selectedType = typeSelect.value;
+    const uniqueTypes = [...new Set(campingRows.map(row => row.type.trim()).filter(Boolean))].sort();
+    typeSelect.innerHTML = '<option value="ALL">All Types</option>';
+    uniqueTypes.forEach(type => {
+      const option = document.createElement("option");
+      option.value = type;
+      option.textContent = type;
+      typeSelect.appendChild(option);
+    });
+    if (uniqueTypes.includes(selectedType)) typeSelect.value = selectedType;
+  }
+
+  function sortCampingTable(columnIndex) {
+    if (campingSortColumn === columnIndex) {
+      campingSortAsc = !campingSortAsc;
+    } else {
+      campingSortColumn = columnIndex;
+      campingSortAsc = true;
+    }
+
+    document.querySelectorAll("#campingTable th").forEach((header, index) => {
+      header.classList.remove("sort-asc", "sort-desc");
+      header.setAttribute("aria-sort", "none");
+      if (index === campingSortColumn + 1) {
+        header.classList.add(campingSortAsc ? "sort-asc" : "sort-desc");
+        header.setAttribute("aria-sort", campingSortAsc ? "ascending" : "descending");
+      }
+    });
+    renderCampingTable();
+  }
 
   function checkLevelMatch(itemLevelStr, targetRange) {
     const cleanLevel = itemLevelStr.replace('?', '').trim();
@@ -468,6 +836,51 @@ function applyFilters() {
   
   function openDetails(encodedZoneName, category, event) {
     if (event) event.preventDefault();
+    if (category === "camping") {
+      const item = campingRows.find(row => row.id === encodedZoneName);
+      const panel = document.getElementById("detailsPanel");
+      if (!item) return;
+      const reagentList = item.reagents.split(/\r?\n/)
+        .map(reagent => reagent.trim())
+        .filter(Boolean)
+        .map(reagent => `<li><a class="wowhead-reagent-link" href="#" aria-disabled="true" title="Resolving item on Wowhead" data-item-name="${escapeHtml(reagent)}" target="_blank" rel="noopener noreferrer"><img src="images/wowhead.webp" alt="View on Wowhead"></a><span>${escapeHtml(reagent)}</span></li>`)
+        .join("");
+
+      panel.innerHTML = `
+        <div class="panel-header">
+          <h3>${escapeHtml(item.item)}</h3>
+          <button onclick="closePanel()">&times;</button>
+        </div>
+        <div class="panel-body">
+          <p><strong>Tier:</strong> ${escapeHtml(item.tier)}</p>
+          <p><strong>Description:</strong></p>
+          <p>${escapeHtml(item.description)}</p>
+          <hr>
+          <p><strong>Reagents:</strong></p>
+          <ul class="camping-reagents">${reagentList}</ul>
+        </div>`;
+      panel.querySelectorAll(".wowhead-reagent-link").forEach(link => {
+        link.addEventListener("click", event => {
+          if (link.getAttribute("aria-disabled") === "true") event.preventDefault();
+        });
+        const itemName = normalizeWowheadItemName(link.dataset.itemName);
+        getWowheadItemUrl(itemName).then(url => {
+          if (!link.isConnected) return;
+          if (url) {
+            link.href = url;
+            link.title = "View item on Wowhead";
+            link.removeAttribute("aria-disabled");
+          } else {
+            link.href = `${WOWHEAD_URL}/search?q=${encodeURIComponent(itemName)}#items`;
+            link.title = "Could not resolve item on Wowhead";
+            link.removeAttribute("aria-disabled");
+          }
+        });
+      });
+      showDetailsPanel(panel);
+      return;
+    }
+
     const zoneName = decodeURIComponent(encodedZoneName);
     const panel = document.getElementById("detailsPanel");
     let backdrop = document.getElementById("modalBackdrop");
@@ -519,9 +932,14 @@ function applyFilters() {
         </div>`;
     }
     
+    showDetailsPanel(panel);
+  }
+
+  function showDetailsPanel(panel) {
+    let backdrop = document.getElementById("modalBackdrop");
     panel.classList.add("active");
-  
-    if (window.innerWidth <= 768) {
+
+    if (window.innerWidth <= 960) {
       if (!backdrop) {
         backdrop = document.createElement("div");
         backdrop.id = "modalBackdrop";
@@ -530,10 +948,12 @@ function applyFilters() {
         document.body.appendChild(backdrop);
       }
       backdrop.classList.add("active");
+      document.body.classList.add("modal-open");
     }
   }
 
   function renderListWithCheckboxes(rawText, entityId, prefix) {
+    if (isTbd(rawText)) return escapeHtml(rawText.trim());
     if (!rawText || !rawText.trim()) return '<span style="color: var(--text-dim);">None</span>';
     
     const lines = rawText.split('\n').map(l => l.trim()).filter(l => l !== "");
@@ -554,6 +974,10 @@ function applyFilters() {
     }).join("");
   }
 
+  function isTbd(rawText) {
+    return typeof rawText === "string" && rawText.trim().toLowerCase() === "tbd";
+  }
+
   function toggleDetailCheck(key, checkbox) {
     localStorage.setItem(key, checkbox.checked);
     const parent = checkbox.closest(".detail-item");
@@ -570,6 +994,7 @@ function applyFilters() {
   function closePanel() {
     document.getElementById("detailsPanel")?.classList.remove("active");
     document.getElementById("modalBackdrop")?.classList.remove("active");
+    document.body.classList.remove("modal-open");
   }
 
   function toggleCheck(id, checkbox) {
@@ -635,11 +1060,15 @@ function applyFilters() {
     const bossStats = countCategoryProgress(data?.bosses, entityId, "boss");
 
     let html = "";
-    if (questStats.total > 0) {
+    if (isTbd(data?.quests)) {
+      html += `Quests: ${escapeHtml(data.quests.trim())}<br>`;
+    } else if (questStats.total > 0) {
       const qDone = questStats.checked === questStats.total;
       html += `Quests (${questStats.checked}/${questStats.total})${qDone ? ' ✅' : ''}<br>`;
     }
-    if (bossStats.total > 0) {
+    if (isTbd(data?.bosses)) {
+      html += `Bosses: ${escapeHtml(data.bosses.trim())}`;
+    } else if (bossStats.total > 0) {
       const bDone = bossStats.checked === bossStats.total;
       html += `Bosses (${bossStats.checked}/${bossStats.total})${bDone ? ' ✅' : ''}`;
     }
@@ -648,7 +1077,7 @@ function applyFilters() {
   }
 
   function countCategoryProgress(rawText, entityId, prefix) {
-    if (!rawText || !rawText.trim()) return { checked: 0, total: 0 };
+    if (!rawText || !rawText.trim() || isTbd(rawText)) return { checked: 0, total: 0 };
     
     const lines = rawText.split('\n').map(l => l.trim()).filter(l => l !== "");
     let checkedCount = 0;

@@ -56,6 +56,15 @@
   min-width: 200;
 }
 
+.content-body.legacy-view .table-container {
+  flex: 1 1 100%;
+  min-width: 0;
+}
+
+.content-body.legacy-view #detailsPanel {
+  display: none !important;
+}
+
 .panel-header {
   display: flex;
   justify-content: space-between;
@@ -103,6 +112,32 @@
   font-size: 1.1rem;
   line-height: 1.5;
   white-space: pre-line; /* Preserves newlines from Google Sheets data */
+}
+
+.camping-reagents {
+  margin: 0 0 10px;
+  padding: 0;
+  line-height: 1.5;
+  list-style: none;
+}
+
+.camping-reagents li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wowhead-reagent-link {
+  display: inline-flex;
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.wowhead-reagent-link img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 /* horizontal divider */
@@ -160,6 +195,10 @@ h1 {
   color: var(--accent);
   margin: 0;
   font-size: 1.6rem;
+}
+
+.mobile-navigation {
+  display: none;
 }
 
 /* Pushes text to the far right */
@@ -339,6 +378,100 @@ table {
   table-layout: auto; /* Ensure auto-sizing based on cell contents */
 }
 
+#checklistTable {
+  table-layout: fixed;
+}
+
+#checklistTable th,
+#checklistTable td {
+  padding-left: 8px;
+  padding-right: 8px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+#checklistTable .col-cb {
+  width: 8%;
+  padding-left: 2px;
+  padding-right: 2px;
+}
+
+#checklistTable .col-level {
+  width: 16%;
+}
+
+#checklistTable .col-zone {
+  width: 46%;
+}
+
+#checklistTable .col-progress {
+  width: 30%;
+}
+
+#legacyTable {
+  width: 100%;
+  table-layout: fixed;
+}
+
+#legacyTable th,
+#legacyTable td {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+#legacyTable th:first-child,
+#legacyTable td:first-child {
+  width: 44px;
+}
+
+#legacyTable .legacy-description {
+  width: auto;
+}
+
+#legacyTable .legacy-type {
+  width: 12ch;
+  padding-left: 8px;
+  padding-right: 8px;
+  white-space: nowrap;
+}
+
+#legacyTable .legacy-tooltip {
+  display: none;
+}
+
+#campingTable {
+  width: 100%;
+  table-layout: fixed;
+}
+
+#campingTable th,
+#campingTable td {
+  padding-left: 8px;
+  padding-right: 8px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+#campingTable th:nth-child(1),
+#campingTable td:nth-child(1) {
+  width: 8%;
+  padding-left: 2px;
+  padding-right: 2px;
+  text-align: center;
+}
+
+#campingTable th:nth-child(2) {
+  width: 18%;
+}
+
+#campingTable th:nth-child(3) {
+  width: 29%;
+}
+
+#campingTable th:nth-child(4) {
+  width: 45%;
+}
+
 th, td {
   padding-top: 12px;
   padding-bottom: 12px;
@@ -491,7 +624,11 @@ input[type="checkbox"] {
 }
 
 /* MOBILE (narrow screen) OVERRIDES */
-@media (max-width: 768px) {
+@media (max-width: 960px) {
+  body.modal-open {
+    overflow: hidden;
+  }
+
   body {
     padding: 12px;
   }
@@ -518,8 +655,60 @@ input[type="checkbox"] {
   
   /* Header adjustments */
   .header-container {
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 8px;
+  }
+
+  .mobile-navigation {
+    display: block;
+    position: relative;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+
+  .mobile-navigation summary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    color: var(--text);
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .mobile-navigation summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .menu-icon {
+    display: grid;
+    gap: 4px;
+    width: 16px;
+  }
+
+  .menu-icon span {
+    height: 2px;
+    background: currentColor;
+  }
+
+  .mobile-menu-list {
+    display: block;
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    z-index: 20;
+    min-width: 150px;
+    padding: 6px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+  }
+
+  .mobile-menu-list li {
+    margin-bottom: 2px;
   }
   
   .header-note {
@@ -543,26 +732,9 @@ input[type="checkbox"] {
     gap: 16px;
   }
   
-  /* Transform sidebar into a horizontal top bar */
+  /* Replace the sidebar with the header menu on narrow screens */
   .wiki-sidebar {
-    width: 100%;
-    min-width: 0;
-    height: auto;
-    position: static;
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 12px;
-  }
-  
-  .sidebar-menu {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  
-  .sidebar-menu li {
-    margin-bottom: 0;
+    display: none;
   }
   
   /* Content area full width */
@@ -605,16 +777,59 @@ input[type="checkbox"] {
     padding-right: 16px;
   }
 
-  /* Ensure the table distributes column percentages correctly */
-  #checklistTable {
-    width: 100%;
-    table-layout: fixed;
+  #legacyTable .legacy-description {
+    display: none;
   }
-  
-  .col-zone, .col-activity {
+
+  #legacyTable .legacy-challenge[data-description] {
+    position: relative;
+  }
+
+  #legacyTable .legacy-challenge.has-note::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 0 6px 6px 0;
+    border-color: transparent var(--accent) transparent transparent;
+    pointer-events: none;
+  }
+
+  #legacyTable .legacy-tooltip {
+    display: block;
+    position: absolute;
+    bottom: calc(100% + 6px);
+    right: 0;
+    z-index: 101;
+    width: min(75vw, 320px);
+    max-width: calc(100% - 20px);
+    box-sizing: border-box;
+    padding: 6px 10px;
+    background: #1a1a20;
+    color: var(--text);
+    border: 1px solid #635938;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 400;
+    line-height: 1.4;
     white-space: normal;
-    min-width: 140px;
-    width: 65%;
+    overflow-wrap: anywhere;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  #legacyTable .legacy-challenge[data-description]:hover .legacy-tooltip {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .col-activity {
+    white-space: normal;
   }
 
   /* Optional: Set explicit widths for remaining columns so they distribute nicely 
@@ -627,6 +842,6 @@ input[type="checkbox"] {
   }
   
   .col-progress {
-    width: 30%;*/
-  }
+    width: 30%;
+  }*/
 }
