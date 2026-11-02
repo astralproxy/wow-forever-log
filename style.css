@@ -13,6 +13,9 @@
   --col-narrow-width: 90px; /* Shared by Level, Legacy Type, and Camping Skill */
   --col-type-width: 84px;
   --col-zone-width: 240px;
+
+  /* --- Other size variables --- */
+  --map-icon-size: 96px;
 }
 
 /* Custom instant tooltip container */
@@ -688,6 +691,168 @@ input[type="checkbox"] {
 .detail-item.completed span {
   text-decoration: line-through;
   opacity: 0.6;
+}
+
+/* --- Detail View Map Icon --- */
+.detail-location-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center !important;
+  margin: 0 !important;
+}
+
+/* --- Detail Meta Info Grid (Level & Location) --- */
+.detail-meta-grid {
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch; /* Stretches children to match tallest height */
+  gap: 16px;
+  margin: 10px 0;
+}
+
+.detail-meta-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* Spreads Level and Location evenly */
+  flex: 1;
+  min-width: 0;
+}
+
+.detail-meta-text p {
+  margin: 0 !important;
+  font-size: 1.1rem;
+  line-height: 1.5;
+}
+
+.map-thumbnail-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  opacity: 0.85;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.map-thumbnail-btn:hover {
+  opacity: 1;
+  transform: scale(1.05);
+}
+
+.map-thumbnail-btn img {
+  height: 100%; /* Automatically scales to height of container */
+  max-height: 52px; /* Fallback cap */
+  width: auto;
+  object-fit: contain;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  display: block;
+}
+
+.map-icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  opacity: 0.85;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  flex-shrink: 0;
+}
+
+.map-icon-btn:hover {
+  opacity: 1;
+  transform: scale(1.05);
+}
+
+.map-icon-btn img {
+  width: var(--map-icon-size);
+  height: var(--map-icon-size);
+  object-fit: contain;
+  /* border-radius: 3px;
+  border: 1px solid var(--border);
+  display: block; */
+}
+
+/* --- Fullscreen Map Panning Modal --- */
+.map-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 2000;
+  overflow: hidden;
+  cursor: grab;
+}
+
+.map-modal.active {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.map-modal.dragging {
+  cursor: grabbing;
+}
+
+.map-modal-content {
+  position: absolute;
+  user-select: none;
+  max-width: none;
+  max-height: none;
+}
+
+.map-modal-close {
+  position: fixed;
+  top: 20px;
+  right: 30px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  border: 1px solid var(--border);
+  font-size: 2rem;
+  width: var(--col-cb-width);
+  height: var(--col-cb-width);
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 2001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.map-modal-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* --- Map Modal Reset Button --- */
+.map-modal-reset {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: rgba(26, 26, 32, 0.85);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 8px 14px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  z-index: 2001;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.map-modal-reset:hover {
+  background: var(--card-bg);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 /*#region MOBILE (narrow screen) OVERRIDES */
