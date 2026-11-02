@@ -801,7 +801,7 @@ function applyFilters() {
         : '';
 
       // Generate map slug from the location name (e.g. "Ruins of Lordaeron" -> "ruins-of-lordaeron")
-      const mapSlug = data.image ? data.image.trim() : slugify(data.location);
+      const mapSlug = /*data.image ? data.image.trim() :*/ slugify(data.name);
       const mapImagePath = `images/maps/${mapSlug}.webp`;
 
       panel.innerHTML = `
@@ -817,15 +817,30 @@ function applyFilters() {
               <p><strong>Level:</strong> ${escapeHtml(data.level)}</p>
               <p><strong>Location:</strong> ${escapeHtml(data.location)}</p>
             </div>
-            <button class="map-thumbnail-btn" onclick="openMapModal('${mapImagePath}', '${escapeHtml(data.name)}', event)" title="View Full Map" data-tooltip="View Map">
-              <img src="${mapImagePath}" alt="${escapeHtml(data.location)} Map">
-            </button>
+            <div id="mapSlot"></div>
           </div>
           <hr>
           <p><strong>Quests:</strong></p>
           <div class="detail-checklist">${formattedQuests}</div>
           ${bossesSection}
         </div>`;
+
+      // Silently check if map image exists via HEAD request without throwing 404 console errors
+      fetch(mapImagePath, { method: 'HEAD' })
+        .then(response => {
+          if (response.ok) {
+            const slot = document.getElementById("mapSlot");
+            if (slot) {
+              slot.innerHTML = `
+                <button class="map-thumbnail-btn" onclick="openMapModal('${mapImagePath}', '${escapeHtml(data.name)}', event)" title="View Full Map" data-tooltip="View Map">
+                  <img src="${mapImagePath}" alt="${escapeHtml(data.location)} Map">
+                </button>`;
+            }
+          }
+        })
+        .catch(() => {
+          // Ignore network errors/missing files silently
+        });
     }
     
     showDetailsPanel(panel);
