@@ -12,7 +12,7 @@
   
   <div class="header-container">
     <img src="logo.png" alt="Logo" class="header-logo">
-    <h1>Forever Log</h1>
+    <h2>WoW Forever Log</h2>
     <details class="mobile-navigation">
       <summary aria-label="Open navigation menu">
         <span class="menu-icon" aria-hidden="true"><span></span><span></span><span></span></span>
@@ -104,7 +104,7 @@
               <th class="col-cb no-sort"></th>
               <th class="col-level" onclick="sortTable(1)">Level</th>
               <th class="col-type" onclick="sortTable(2)">Type</th>
-              <th class="col-zone" onclick="sortTable(2)">Location</th>
+              <th class="col-zone" onclick="sortTable(3)">Location</th>
               <th class="col-progress">Progress</th>
             </tr>
           </thead>
@@ -434,7 +434,7 @@
     });
   }
 
-  // handle sidebar clicks:
+  // handle sidebar tab clicks
   function filterByCategory(category, element, event) {
     if (event) event.preventDefault();
     currentCategory = category;
@@ -455,6 +455,9 @@
 
     const isLegacy = category.toLowerCase() === "legacy";
     const isCamping = category.toLowerCase() === "camping";
+    const isAll = category.toLowerCase() === "all";
+
+    document.getElementById("checklistTable").classList.toggle("hide-type", !isAll);
     document.getElementById("checklistTable").hidden = isLegacy || isCamping;
     document.getElementById("legacyTable").hidden = !isLegacy;
     document.getElementById("campingTable").hidden = !isCamping;
@@ -786,16 +789,16 @@ function applyFilters() {
       let tagClass = "zone";
       let itemCategory = "zone";
 
-      if (rawType.includes("dungeon")) {
+      const key = item.zone.toLowerCase().trim();
+      if (rawType.includes("dungeon") || dungeonMap.has(key)) {
         tagClass = "dungeon";
         itemCategory = "dungeon";
-      } else if (rawType.includes("raid")) {
+      } else if (rawType.includes("raid") || raidMap.has(key)) {
         tagClass = "raid";
         itemCategory = "raid";
       }
 
       const notes = item.cellNotes || {};
-      const key = item.zone.toLowerCase().trim();
       const entityId = key.replace(/[^a-z0-9]/g, "-");
 
       const dungeonInfo = itemCategory === "dungeon" ? dungeonMap.get(key) : null;
@@ -821,7 +824,7 @@ function applyFilters() {
         : "";
 
       // Calculate Quests/Bosses Progress
-      const progressHtml = getItemProgress(detailData, entityId);
+      const progressHtml = getItemProgress(detailData, entityId, itemCategory);
 
       tr.innerHTML = `
         <td class="col-cb">
@@ -832,6 +835,14 @@ function applyFilters() {
         <td class="col-zone" ${zoneTooltip}>${zoneContent}</td>
         <td class="col-progress">${progressHtml}</td>
       `;
+
+      // Allow clicking anywhere on the row to open details (excluding checkboxes and links)
+      tr.addEventListener('click', (event) => {
+        if (event.target.tagName === 'INPUT' || event.target.closest('input') || event.target.tagName === 'A' || event.target.closest('a')) {
+          return; // Let checkboxes and location links handle their own clicks
+        }
+        openDetails(encodedZoneName, itemCategory, event);
+      });
       
       tbody.appendChild(tr);
     });
@@ -914,7 +925,16 @@ function applyFilters() {
     } else {
       const entityId = key.replace(/[^a-z0-9]/g, "-");
       const formattedQuests = renderListWithCheckboxes(data.quests, entityId, "quest");
-      const formattedBosses = renderListWithCheckboxes(data.bosses, entityId, "boss");
+      
+      let bossesSection = "";
+      if (category !== "zone") {
+        const formattedBosses = renderListWithCheckboxes(data.bosses, entityId, "boss");
+        bossesSection = `
+          <hr>
+          <p><strong>Bosses:</strong></p>
+          <div class="detail-checklist">${formattedBosses}</div>
+        `;
+      }
 
       const imageHtml = data.image 
         ? `<img src="images/${escapeHtml(data.image)}.webp" alt="${escapeHtml(data.name)}" class="panel-thumb">`
@@ -933,8 +953,7 @@ function applyFilters() {
           <hr>
           <p><strong>Quests:</strong></p>
           <div class="detail-checklist">${formattedQuests}</div>
-          <p><strong>Bosses:</strong></p>
-          <div class="detail-checklist">${formattedBosses}</div>
+          ${bossesSection}
         </div>`;
     }
     
@@ -1062,9 +1081,8 @@ function applyFilters() {
     }
   }
 
-  function getItemProgress(data, entityId) {
+  function getItemProgress(data, entityId, category) {
     const questStats = countCategoryProgress(data?.quests, entityId, "quest");
-    const bossStats = countCategoryProgress(data?.bosses, entityId, "boss");
 
     let html = "";
     if (isTbd(data?.quests)) {
@@ -1073,12 +1091,20 @@ function applyFilters() {
       const qDone = questStats.checked === questStats.total;
       html += `Quests (${questStats.checked}/${questStats.total})${qDone ? ' ✅' : ''}<br>`;
     }
-    if (isTbd(data?.bosses)) {
-      html += `Bosses: ${escapeHtml(data.bosses.trim())}`;
-    } else if (bossStats.total > 0) {
-      const bDone = bossStats.checked === bossStats.total;
-      html += `Bosses (${bossStats.checked}/${bossStats.total})${bDone ? ' ✅' : ''}`;
+
+    // Only render bosses if it's NOT a zone
+    if (category !== "zone") {
+      const bossStats = countCategoryProgress(data?.bosses, entityId, "boss");
+      if (isTbd(data?.bosses)) {
+        html += `Bosses: ${escapeHtml(data.bosses.trim())}`;
+      } else if (bossStats.total > 0) {
+        const bDone = bossStats.checked === bossStats.total;
+        html += `Bosses (${bossStats.checked}/${bossStats.total})${bDone ? ' ✅' : ''}`;
+      }
     }
+
+    // Clean up trailing break tag if bosses were omitted
+    html = html.replace(/<br>\s*$/, "");
 
     return html || '<span style="color: var(--text-dim);">-</span>';
   }

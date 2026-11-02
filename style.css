@@ -7,6 +7,12 @@
   --accent: #C3A77F;
   --row-hover: #282833;
   --checked-bg: rgba(100, 255, 80, 0.08);
+
+  /* --- Reusable Column Width Variables --- */
+  --col-cb-width: 44px;
+  --col-narrow-width: 90px; /* Shared by Level, Legacy Type, and Camping Skill */
+  --col-type-width: 84px;
+  --col-zone-width: 240px;
 }
 
 /* Custom instant tooltip container */
@@ -392,9 +398,9 @@ table {
 
 /* --- Checklist Table Column Widths (5-Column Layout) --- */
 #checklistTable .col-cb {
-  width: 44px !important;
-  min-width: 44px !important;
-  max-width: 44px !important;
+  width: var(--col-cb-width) !important;
+  min-width: var(--col-cb-width) !important;
+  max-width: var(--col-cb-width) !important;
   padding-left: 4px !important;
   padding-right: 4px !important;
   text-align: center;
@@ -402,9 +408,9 @@ table {
 }
 
 #checklistTable .col-level {
-  width: 110px !important;
-  min-width: 110px !important;
-  max-width: 110px !important;
+  width: var(--col-narrow-width) !important;
+  min-width: var(--col-narrow-width) !important;
+  max-width: var(--col-narrow-width) !important;
   white-space: nowrap !important;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -412,22 +418,38 @@ table {
 }
 
 #checklistTable .col-type {
-  width: 84px !important;
-  min-width: 84px !important;
-  max-width: 84px !important;
+  width: var(--col-type-width) !important;
+  min-width: var(--col-type-width) !important;
+  max-width: var(--col-type-width) !important;
   text-align: left !important;
   box-sizing: border-box;
 }
 
 #checklistTable .col-zone {
-  width: 240px !important;
-  min-width: 240px !important;
-  max-width: 240px !important;
+  width: var(--col-zone-width) !important;
+  min-width: var(--col-zone-width) !important;
+  max-width: var(--col-zone-width) !important;
   box-sizing: border-box;
 }
 
 #checklistTable .col-progress {
   width: 30%;
+}
+
+/* Make table rows show a pointer cursor on hover (except checkboxes) */
+#checklistTable tbody tr {
+  cursor: pointer;
+}
+
+#checklistTable tbody tr td.col-cb {
+  cursor: default;
+}
+
+/* Hide Type column when .hide-type class is active */
+#checklistTable.hide-type .col-type,
+#checklistTable.hide-type th:nth-child(3),
+#checklistTable.hide-type td.col-type {
+  display: none !important;
 }
 
 #legacyTable {
@@ -444,17 +466,23 @@ table {
 /* --- Legacy Table Checkbox Column Width --- */
 #legacyTable th:first-child,
 #legacyTable td:first-child {
-  width: 44px !important;
-  min-width: 44px !important;
-  max-width: 44px !important;
+  width: var(--col-cb-width) !important;
+  min-width: var(--col-cb-width) !important;
+  max-width: var(--col-cb-width) !important;
   text-align: center;
 }
 
+/* --- Legacy Table Type Column Width --- */
 #legacyTable .legacy-type {
-  width: 16%;
+  width: var(--col-narrow-width) !important;
+  min-width: var(--col-narrow-width) !important;
+  max-width: var(--col-narrow-width) !important;
   padding-left: 8px;
   padding-right: 8px;
-  white-space: nowrap;
+  white-space: nowrap !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
 }
 
 #legacyTable .legacy-description {
@@ -481,15 +509,22 @@ table {
 /* --- Camping Table Column Widths --- */
 #campingTable th:nth-child(1),
 #campingTable td:nth-child(1) {
-  width: 44px !important;
-  min-width: 44px !important;
-  max-width: 44px !important;
+  width: var(--col-cb-width) !important;
+  min-width: var(--col-cb-width) !important;
+  max-width: var(--col-cb-width) !important;
   text-align: center;
 }
 
+/* --- Camping Table Skill Column (aligned with checklist level column) --- */
 #campingTable th:nth-child(2),
 #campingTable td:nth-child(2) {
-  width: 130px !important; /* Skill column */
+  width: var(--col-narrow-width) !important;
+  min-width: var(--col-narrow-width) !important;
+  max-width: var(--col-narrow-width) !important;
+  white-space: nowrap !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
 }
 
 #campingTable th:nth-child(3),
