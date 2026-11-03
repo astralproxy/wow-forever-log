@@ -9,7 +9,7 @@
   --checked-bg: rgba(100, 255, 80, 0.08);
 
   /* --- Reusable Column Width Variables --- */
-  --col-cb-width: 44px;
+  --col-cb-width: 40px;
   --col-narrow-width: 90px; /* Shared by Level, Legacy Type, and Camping Skill */
   --col-type-width: 84px;
   --col-zone-width: 240px;
